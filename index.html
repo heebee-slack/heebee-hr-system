@@ -1117,7 +1117,7 @@ el.innerHTML=`
 </div>
 <div style="background:var(--surface2);border-radius:12px;padding:14px">
 <div class="detail-label" style="margin-bottom:10px;color:var(--gold)">Deductions</div>
-${g.esiApplicable?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>ESI (Employee)</span><b>₹${g.esiEmp.toLocaleString('en-IN')}</b></div>`:'<div style="padding:4px 0;color:var(--text3);font-size:.75rem">ESI: Not applicable (gross > ₹${getSplitConfig().esiThreshold.toLocaleString("en-IN")})</div>'}
+${g.esiApplicable?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>ESI (Employee)</span><b>₹${g.esiEmp.toLocaleString('en-IN')}</b></div>`:`<div style="padding:4px 0;color:var(--text3);font-size:.75rem">ESI: Not applicable (gross &gt; ₹${Number(getSplitConfig().esiThreshold).toLocaleString('en-IN')})</div>`}
 <div style="display:flex;justify-content:space-between;padding:4px 0"><span>EPF (Employee)</span><b>₹${g.epfEmp.toLocaleString('en-IN')}</b></div>
 <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Professional Tax</span><b>₹${g.pt.toLocaleString('en-IN')}</b></div>
 <div style="display:flex;justify-content:space-between;padding:6px 0;margin-top:6px;border-top:1px solid var(--border2);color:var(--gold);font-weight:600"><span>Net Pay</span><span>₹${g.net.toLocaleString('en-IN')}</span></div>
