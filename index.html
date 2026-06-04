@@ -353,9 +353,9 @@ window.dbUpdate=async(p,d)=>{if(!window._db)return false;try{await update(ref(wi
 
 <script>
 const USERS={'hr@heebeecoffee.com':'1234','gavish@heebeecoffee.com':'0000','nitigya@heebeecoffee.com':'1111'};
-function doLogin(){const e=document.getElementById('loginEmail').value.trim().toLowerCase(),p=document.getElementById('loginPin').value.trim();if(USERS[e]&&USERS[e]===p){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}else{document.getElementById('loginErr').textContent='Invalid credentials';}}
+function doLogin(){const e=document.getElementById('loginEmail').value.trim().toLowerCase(),p=document.getElementById('loginPin').value.trim();if(USERS[e]&&USERS[e]===p){sessionStorage.setItem('hb_hr_user',e);document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}else{document.getElementById('loginErr').textContent='Invalid credentials';}}
 document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogout(){document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
+function doLogout(){sessionStorage.removeItem('hb_hr_user');document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
 function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
 function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();}
 function showOTab(n,el){['scan','directory','empprofiles'].forEach(t=>{document.getElementById('otab-'+t).style.display='none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('otab-'+n).style.display='block';if(el)el.classList.add('active');if(n==='directory')renderDirectory();if(n==='empprofiles')renderEmployeeList();}
@@ -778,6 +778,9 @@ skills:[],experience_years:'',education:'',past_employers:[],dob:'',
 notes:[{text:'Seeded from April 2026 salary sheets',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()});
 done++;}
 st.textContent=`◈ ${done} employees seeded successfully`;st.style.color='var(--gold)';showToast(done+' employees seeded');renderAllEmployees();}
+
+// ─── AUTO-LOGIN ON REFRESH ──────────────────────────
+(function(){const u=sessionStorage.getItem('hb_hr_user');if(u&&USERS[u]){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}})();
 </script>
 </body>
 </html>
