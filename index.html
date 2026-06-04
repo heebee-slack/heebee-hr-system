@@ -269,9 +269,11 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div class="panel" id="panel-payroll">
 <div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Payroll Uploads</div><div class="page-rule"></div></div>
 <div class="filter-row" style="margin-bottom:20px"><label class="settings-label" style="margin:0;padding-top:6px">Month:</label><input type="month" class="month-input" id="payrollMonth"></div>
-<div class="upload-tabs">
-<div class="upload-tab active" id="ptab-bank-btn" onclick="showPTab('bank')"><div class="upload-tab-icon">◇</div><div class="upload-tab-label">Bank Transfer Sheet</div></div>
-<div class="upload-tab" id="ptab-govt-btn" onclick="showPTab('govt')"><div class="upload-tab-icon">◈</div><div class="upload-tab-label">Govt Salary Sheet</div></div>
+<div class="upload-tabs" style="flex-wrap:wrap">
+<div class="upload-tab active" id="ptab-bank-btn" onclick="showPTab('bank')"><div class="upload-tab-icon">◇</div><div class="upload-tab-label">Upload HR Sheet</div></div>
+<div class="upload-tab" id="ptab-generate-btn" onclick="showPTab('generate')"><div class="upload-tab-icon">◈</div><div class="upload-tab-label">Generate Govt Sheet</div></div>
+<div class="upload-tab" id="ptab-ecr-btn" onclick="showPTab('ecr')"><div class="upload-tab-icon">◎</div><div class="upload-tab-label">ECR Export</div></div>
+<div class="upload-tab" id="ptab-govt-btn" onclick="showPTab('govt')"><div class="upload-tab-icon">✦</div><div class="upload-tab-label">Manual Upload</div></div>
 </div>
 <div id="ptab-bank">
 <div class="glass-card" style="max-width:600px">
@@ -282,11 +284,41 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div id="bankReport"></div>
 </div>
 </div>
+<div id="ptab-generate" style="display:none">
+<div class="glass-card">
+<div class="section-title">Auto-Generate Govt Salary Sheet</div>
+<p style="font-size:.82rem;color:var(--text3);margin-bottom:16px;font-weight:300">Uses your salary split config + employee data to auto-generate the govt-compliant salary sheet. Click "Generate" to build it for the selected month.</p>
+<div class="filter-row">
+<select class="filter-select" id="genOutlet"><option value="">All Outlets</option><option value="SHB">SHB — Sarabha Nagar</option><option value="GHB">GHB — Ghumar Mandi</option><option value="JLD">JLD — Jalandhar</option></select>
+<select class="filter-select" id="genDept"><option value="">All Depts</option><option value="D00">D00 — Ops</option><option value="D01">D01 — Office</option><option value="D02">D02 — Directors</option><option value="D03">D03 — Jalandhar</option></select>
+<button class="btn-primary" style="padding:8px 20px;min-width:auto;flex:none" onclick="generateGovtSheet()">◈ Generate</button>
+</div>
+<div id="govtSheetPreview" style="margin-top:16px"></div>
+<div id="govtSheetActions" style="display:none;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn-primary" style="min-width:auto" onclick="downloadGovtSheetPDF()">◈ Download PDF</button>
+<button class="btn-primary" style="min-width:auto;background:#25d366;color:#fff" onclick="whatsappGovtSheet()">◎ WhatsApp to PF Guy</button>
+<button class="btn-ghost" style="min-width:auto" onclick="downloadGovtSheetExcel()">◇ Download Excel</button>
+</div>
+</div>
+</div>
+<div id="ptab-ecr" style="display:none">
+<div class="glass-card" style="max-width:600px">
+<div class="section-title">ECR Export — EPFO Portal</div>
+<p style="font-size:.82rem;color:var(--text3);margin-bottom:16px;font-weight:300">Generate the Electronic Challan-cum-Return (ECR) file for upload to the EPFO Unified Portal. Only PF-covered employees are included.</p>
+<div class="filter-row">
+<select class="filter-select" id="ecrWageMonth">
+<option value="">Select Wage Month</option>
+</select>
+<button class="btn-primary" style="padding:8px 20px;min-width:auto;flex:none" onclick="generateECR()">◎ Generate ECR</button>
+</div>
+<div id="ecrPreview" style="margin-top:16px"></div>
+</div>
+</div>
 <div id="ptab-govt" style="display:none">
 <div class="glass-card" style="max-width:600px">
-<div class="section-title">Govt Salary Sheet</div>
-<p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload the labour-law compliant salary sheet Excel with full breakup: Basic · HRA · DA · Special Allowance · Gross · Deductions · Net Pay</p>
-<div class="upload-zone" onclick="document.getElementById('govtFile').click()"><div class="upload-icon">◈</div><div class="upload-title">Upload Govt Salary Sheet</div><div class="upload-sub" style="margin-top:6px">.xlsx · .xls</div></div>
+<div class="section-title">Manual Govt Sheet Upload</div>
+<p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload a manually-prepared govt salary sheet Excel to match against employees.</p>
+<div class="upload-zone" onclick="document.getElementById('govtFile').click()"><div class="upload-icon">✦</div><div class="upload-title">Upload Govt Salary Sheet</div><div class="upload-sub" style="margin-top:6px">.xlsx · .xls</div></div>
 <input type="file" id="govtFile" class="file-input" accept=".xlsx,.xls" onchange="handleGovtUpload(this.files[0])">
 <div id="govtReport"></div>
 </div>
@@ -353,6 +385,16 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div id="splitStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
 </div>
 <div class="settings-section">
+<div class="section-title">PF Guy Contact</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:12px">WhatsApp number for sending generated govt sheets for approval.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">PF Guy Name</label><input class="settings-input" type="text" id="pfGuyName" placeholder="Accountant name"></div>
+<div><label class="settings-label">WhatsApp Number</label><input class="settings-input" type="tel" id="pfGuyPhone" placeholder="919876543210"></div>
+</div>
+<button class="save-btn" onclick="savePfGuyConfig()">Save PF Contact</button>
+<div id="pfGuyStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+</div>
+<div class="settings-section">
 <div class="section-title">Seed Data</div>
 <p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:12px">Insert all 67 employees from April 2026 salary sheets into Firebase.</p>
 <button class="save-btn" onclick="seedApril2026()">Seed April 2026 Employees</button>
@@ -402,11 +444,12 @@ function doLogout(){sessionStorage.removeItem('hb_hr_user');document.getElementB
 function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
 function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();}
 function showOTab(n,el){['scan','directory','empprofiles'].forEach(t=>{document.getElementById('otab-'+t).style.display='none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('otab-'+n).style.display='block';if(el)el.classList.add('active');if(n==='directory')renderDirectory();if(n==='empprofiles')renderEmployeeList();}
-function showPTab(n){['bank','govt'].forEach(t=>{document.getElementById('ptab-'+t).style.display='none';document.getElementById('ptab-'+t+'-btn').classList.remove('active');});document.getElementById('ptab-'+n).style.display='block';document.getElementById('ptab-'+n+'-btn').classList.add('active');}
+function showPTab(n){['bank','govt','generate','ecr'].forEach(t=>{const el=document.getElementById('ptab-'+t);if(el)el.style.display='none';const btn=document.getElementById('ptab-'+t+'-btn');if(btn)btn.classList.remove('active');});document.getElementById('ptab-'+n).style.display='block';document.getElementById('ptab-'+n+'-btn').classList.add('active');
+if(n==='ecr')populateEcrMonths();}
 function showToast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
 function loadSettings(){const k=localStorage.getItem('hb_hr_anthropic'),f=localStorage.getItem('hb_hr_firebase');if(k)document.getElementById('setAnthropicKey').value=k;if(f){document.getElementById('setFirebaseConfig').value=f;try{window.initFirebase(JSON.parse(f));}catch(e){}}
 const now=new Date();document.getElementById('payrollMonth').value=now.toISOString().slice(0,7);
-loadSplitConfig();}
+loadSplitConfig();loadPfGuyConfig();}
 function saveSettings(){const k=document.getElementById('setAnthropicKey').value.trim(),f=document.getElementById('setFirebaseConfig').value.trim(),st=document.getElementById('settingsStatus');if(k)localStorage.setItem('hb_hr_anthropic',k);if(f){try{const c=JSON.parse(f);localStorage.setItem('hb_hr_firebase',f);const ok=window.initFirebase(c);st.textContent=ok?'◈ Firebase connected · API key saved':'✗ Firebase error';st.style.color=ok?'var(--gold)':'#e05';}catch(e){st.textContent='✗ Invalid JSON';st.style.color='#e05';}}else{st.textContent='◈ API key saved';st.style.color='var(--gold)';}showToast('Settings saved');}
 
 // ─── RESUME PARSING ─────────────────────────────────
@@ -1140,6 +1183,292 @@ if(format==='excel'){
   doc.save(`Heebee_Ledger_${(e.name||'EMP').replace(/\s+/g,'_')}_${e.emp_id||''}.pdf`);
   showToast('Ledger downloaded as PDF');
 }}
+
+// ─── PF GUY CONFIG ──────────────────────────────────
+const PFGUY_KEY='hb_hr_pfguy';
+function getPfGuy(){try{return JSON.parse(localStorage.getItem(PFGUY_KEY))||{};}catch(e){return{};}}
+function savePfGuyConfig(){
+const name=document.getElementById('pfGuyName')?.value?.trim()||'';
+const phone=document.getElementById('pfGuyPhone')?.value?.trim().replace(/\D/g,'')||'';
+localStorage.setItem(PFGUY_KEY,JSON.stringify({name,phone}));
+document.getElementById('pfGuyStatus').textContent='◈ PF contact saved';
+document.getElementById('pfGuyStatus').style.color='var(--gold)';showToast('PF contact saved');}
+function loadPfGuyConfig(){
+const p=getPfGuy();
+if(document.getElementById('pfGuyName'))document.getElementById('pfGuyName').value=p.name||'';
+if(document.getElementById('pfGuyPhone'))document.getElementById('pfGuyPhone').value=p.phone||'';}
+
+// ─── PHASE 3: AUTO-GENERATE GOVT SALARY SHEET ──────
+let _govtSheetData=[];
+
+async function generateGovtSheet(){
+const mo=getMonth();const fOu=document.getElementById('genOutlet')?.value||'';
+const fDe=document.getElementById('genDept')?.value||'';
+_employees=await window.dbGet('employees')||{};
+const split=getSplitConfig();
+let list=Object.entries(_employees).map(([k,e])=>({k,...e})).filter(e=>e.status==='Active');
+if(fOu)list=list.filter(e=>e.outlet===fOu);
+if(fDe)list=list.filter(e=>e.department===fDe);
+list.sort((a,b)=>(a.emp_id||'').localeCompare(b.emp_id||''));
+
+if(!list.length){document.getElementById('govtSheetPreview').innerHTML='<div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">No active employees for this filter</div></div>';return;}
+
+// Build govt sheet data
+_govtSheetData=list.map((e,i)=>{
+const ctc=Number(e.ctc)||Number(e.basic)||0;
+const g=calcGovtSplit(ctc);
+// Check if we have actual payroll data for this month
+const rem=(e.remuneration_log||{})[mo]||{};
+const wDays=Number(rem.working_days)||26;
+const hDays=Number(rem.holiday_days)||4;
+const otAmt=Number(rem.ot_amt||rem.incentives||0);
+const arrear=Number(rem.arrear_amt||0);
+const advDed=Number(rem.advance_deduction||rem.advance||0);
+const loanDed=Number(rem.loan_deduction||0);
+const uniDed=Number(rem.uniform_deduction||0);
+const fineDed=Number(rem.misc_deduction||0);
+// Pro-rate if less than full month
+const totalDays=wDays+hDays;
+const ratio=totalDays>=30?1:totalDays/30;
+const basicPaid=Math.round(g.basic*ratio);
+const hraPaid=Math.round(g.hra*ratio);
+const splPaid=Math.round(g.spl*ratio);
+const grossPaid=basicPaid+hraPaid+splPaid;
+const totalAmt=grossPaid+otAmt+arrear;
+const esiEmp=g.esiApplicable?Math.round(totalAmt*split.esiEmpPct/100):0;
+const esiEr=g.esiApplicable?Math.round(totalAmt*split.esiErPct/100):0;
+const epfEmp=Math.round(basicPaid*split.epfEmpPct/100);
+const epfEr=Math.round(basicPaid*split.epfErPct/100);
+const pt=split.profTax;
+const totalDed=esiEmp+epfEmp+pt+advDed+loanDed+uniDed+fineDed;
+const netPay=totalAmt-totalDed;
+return{sno:i+1,empId:e.emp_id,name:e.name,father:e.father_name||'',designation:e.position||'',
+pfNo:e.pf_no||'',esiNo:e.esi_no||'',uanNo:e.uan_no||'',joinDate:e.joining_date||'',
+basicRate:g.basic,hraRate:g.hra,splRate:g.spl,grossRate:ctc,
+wDays,hDays,
+basicPaid,hraPaid,splPaid,grossPaid,otAmt,arrear,totalAmt,
+esiEmp,esiEr,epfEmp,epfEr,pt,
+advDed,loanDed,uniDed,fineDed,totalDed,netPay,
+covAmt:g.esiApplicable?totalAmt:0,epfCovAmt:basicPaid};});
+
+// Render preview table
+const totals={basicPaid:0,hraPaid:0,splPaid:0,grossPaid:0,otAmt:0,totalAmt:0,esiEmp:0,epfEmp:0,totalDed:0,netPay:0};
+_govtSheetData.forEach(r=>{totals.basicPaid+=r.basicPaid;totals.hraPaid+=r.hraPaid;totals.splPaid+=r.splPaid;totals.grossPaid+=r.grossPaid;totals.otAmt+=r.otAmt;totals.totalAmt+=r.totalAmt;totals.esiEmp+=r.esiEmp;totals.epfEmp+=r.epfEmp;totals.totalDed+=r.totalDed;totals.netPay+=r.netPay;});
+
+const preview=document.getElementById('govtSheetPreview');
+preview.innerHTML=`
+<div style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px">HEEBEE COFFEE PVT. LTD. — SALARY/WAGES FOR ${mo}</div>
+<div style="font-size:.78rem;color:var(--text3);margin-bottom:12px">${_govtSheetData.length} employees · Split: Basic ${split.basicPct}% · HRA ${split.hraPct}% of Basic</div>
+<div style="overflow-x:auto"><table class="remun-table" style="font-size:.72rem;min-width:900px">
+<thead><tr><th>#</th><th>Code</th><th>Name</th><th>Designation</th><th>Basic</th><th>HRA</th><th>Spl All.</th><th>OT</th><th>Gross</th><th>ESI</th><th>EPF</th><th>PT</th><th>Adv</th><th>Tot Ded</th><th style="color:var(--gold)">Net Pay</th></tr></thead>
+<tbody>${_govtSheetData.map(r=>`<tr>
+<td>${r.sno}</td><td style="font-family:Space Mono,monospace;font-size:.6rem">${r.empId}</td><td>${r.name}</td><td style="font-size:.68rem">${r.designation}</td>
+<td>₹${r.basicPaid.toLocaleString('en-IN')}</td><td>₹${r.hraPaid.toLocaleString('en-IN')}</td><td>₹${r.splPaid.toLocaleString('en-IN')}</td>
+<td>₹${r.otAmt.toLocaleString('en-IN')}</td><td>₹${r.totalAmt.toLocaleString('en-IN')}</td>
+<td>₹${r.esiEmp.toLocaleString('en-IN')}</td><td>₹${r.epfEmp.toLocaleString('en-IN')}</td><td>₹${r.pt}</td><td>₹${r.advDed.toLocaleString('en-IN')}</td>
+<td>₹${r.totalDed.toLocaleString('en-IN')}</td><td style="font-weight:600;color:var(--gold)">₹${r.netPay.toLocaleString('en-IN')}</td>
+</tr>`).join('')}
+<tr style="border-top:2px solid var(--gold);font-weight:600">
+<td colspan="4">TOTAL (${_govtSheetData.length} employees)</td>
+<td>₹${totals.basicPaid.toLocaleString('en-IN')}</td><td>₹${totals.hraPaid.toLocaleString('en-IN')}</td><td>₹${totals.splPaid.toLocaleString('en-IN')}</td>
+<td>₹${totals.otAmt.toLocaleString('en-IN')}</td><td>₹${totals.totalAmt.toLocaleString('en-IN')}</td>
+<td>₹${totals.esiEmp.toLocaleString('en-IN')}</td><td>₹${totals.epfEmp.toLocaleString('en-IN')}</td><td></td><td></td>
+<td>₹${totals.totalDed.toLocaleString('en-IN')}</td><td style="color:var(--gold)">₹${totals.netPay.toLocaleString('en-IN')}</td>
+</tr></tbody></table></div>`;
+document.getElementById('govtSheetActions').style.display='flex';
+showToast('Govt sheet generated — '+_govtSheetData.length+' employees');}
+
+function downloadGovtSheetPDF(){
+if(!_govtSheetData.length){showToast('Generate sheet first');return;}
+const mo=getMonth();const split=getSplitConfig();
+const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',orientation:'landscape'});
+const W=297,H=210,gld=[184,134,11],m=8;
+
+// Header
+doc.setFillColor(15,15,20);doc.rect(0,0,W,24,'F');
+doc.setTextColor(240,192,64);doc.setFontSize(12);doc.setFont('helvetica','bold');
+doc.text('HEEBEE COFFEE PRIVATE LIMITED',W/2,10,{align:'center'});
+doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(180,180,190);
+doc.text('B-XIX-353/14 Dr. Hira Singh Road, Civil Lines, Ludhiana',W/2,16,{align:'center'});
+doc.setTextColor(240,192,64);doc.setFontSize(8);doc.setFont('helvetica','bold');
+const[yr,mn]=mo.split('-');const moName=['','January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mn)]||mo;
+doc.text(`Salary/Wages For The Month of ${moName} ${yr}`,W/2,22,{align:'center'});
+
+// Column setup
+const cols=['#','Code','Name','Father','Desig.','PF#','Basic','HRA','Spl All','OT','Total','ESI','EPF','PT','Adv','Tot Ded','Net Pay'];
+const cW=[6,14,30,24,20,12,16,14,14,12,16,12,12,8,12,14,18];
+let y=30;
+
+// Table header
+doc.setFillColor(30,30,40);doc.rect(m,y-3,W-m*2,7,'F');
+doc.setTextColor(240,192,64);doc.setFontSize(5);doc.setFont('helvetica','bold');
+let x=m;cols.forEach((c,i)=>{doc.text(c,x+1,y+1);x+=cW[i];});
+
+// Rows
+doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);doc.setFontSize(5.5);
+_govtSheetData.forEach((r,ri)=>{
+y+=6;if(y>H-20){doc.addPage();y=14;}
+doc.setFillColor(ri%2===0?245:252,ri%2===0?245:252,ri%2===0?248:255);
+doc.rect(m,y-3,W-m*2,6,'F');doc.setTextColor(30,30,30);
+x=m;
+const vals=[r.sno,r.empId,r.name,r.father,r.designation,r.pfNo,
+'₹'+r.basicPaid.toLocaleString('en-IN'),'₹'+r.hraPaid.toLocaleString('en-IN'),
+'₹'+r.splPaid.toLocaleString('en-IN'),'₹'+r.otAmt.toLocaleString('en-IN'),
+'₹'+r.totalAmt.toLocaleString('en-IN'),'₹'+r.esiEmp.toLocaleString('en-IN'),
+'₹'+r.epfEmp.toLocaleString('en-IN'),'₹'+r.pt,'₹'+r.advDed.toLocaleString('en-IN'),
+'₹'+r.totalDed.toLocaleString('en-IN'),'₹'+r.netPay.toLocaleString('en-IN')];
+vals.forEach((v,i)=>{doc.text(String(v).slice(0,cW[i]*1.2),x+1,y+1);x+=cW[i];});
+});
+
+// Totals
+y+=8;doc.setFillColor(240,235,215);doc.rect(m,y-3,W-m*2,7,'F');
+doc.setFont('helvetica','bold');doc.setTextColor(80,60,10);doc.setFontSize(6);
+const t={b:0,h:0,s:0,o:0,ta:0,es:0,ep:0,td:0,np:0};
+_govtSheetData.forEach(r=>{t.b+=r.basicPaid;t.h+=r.hraPaid;t.s+=r.splPaid;t.o+=r.otAmt;t.ta+=r.totalAmt;t.es+=r.esiEmp;t.ep+=r.epfEmp;t.td+=r.totalDed;t.np+=r.netPay;});
+doc.text(`TOTAL (${_govtSheetData.length} employees)`,m+1,y+1.5);
+x=m+cW[0]+cW[1]+cW[2]+cW[3]+cW[4]+cW[5];
+[t.b,t.h,t.s,t.o,t.ta,t.es,t.ep,'',0,t.td,t.np].forEach((v,i)=>{
+doc.text(v===''?'':'₹'+Number(v).toLocaleString('en-IN'),x+1,y+1.5);x+=cW[i+6];});
+
+// ESI/EPF summary
+y+=12;doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(100,100,110);
+const esiCov=_govtSheetData.filter(r=>r.covAmt>0);const pfCov=_govtSheetData.filter(r=>r.pfNo);
+doc.text(`ESI: ${esiCov.length} covered members | Employee: ₹${t.es.toLocaleString('en-IN')} | Employer: ₹${_govtSheetData.reduce((a,r)=>a+r.esiEr,0).toLocaleString('en-IN')} | Code: 26000547770001102`,m,y);
+y+=5;doc.text(`EPF: ${pfCov.length} PF members | Employee: ₹${t.ep.toLocaleString('en-IN')} | Employer: ₹${_govtSheetData.reduce((a,r)=>a+r.epfEr,0).toLocaleString('en-IN')} | Code: LDLDH2320080000`,m,y);
+
+// Footer
+y+=8;doc.setDrawColor(...gld);doc.setLineWidth(0.3);doc.line(m,y,W-m,y);
+doc.setFontSize(5.5);doc.setTextColor(140,140,150);
+doc.text('Computer generated. Heebee Coffee Pvt. Ltd. | PF: LDLDH2320080000 | ESI: 26000547770001102',W/2,y+4,{align:'center'});
+
+doc.save(`Heebee_Govt_Salary_${mo}.pdf`);
+showToast('Govt sheet PDF downloaded');}
+
+function downloadGovtSheetExcel(){
+if(!_govtSheetData.length){showToast('Generate sheet first');return;}
+const mo=getMonth();
+const rows=_govtSheetData.map(r=>({
+'S.No':r.sno,'Emp Code':r.empId,'Name':r.name,'Father':r.father,'Designation':r.designation,
+'PF No':r.pfNo,'ESI No':r.esiNo,'UAN':r.uanNo,'Joining Date':r.joinDate,
+'Basic Rate':r.basicRate,'HRA Rate':r.hraRate,'Spl Allow Rate':r.splRate,'Gross Rate':r.grossRate,
+'Working Days':r.wDays,'Holiday Days':r.hDays,
+'Basic Paid':r.basicPaid,'HRA Paid':r.hraPaid,'Spl Allow Paid':r.splPaid,
+'OT Amount':r.otAmt,'Arrear':r.arrear,'Total Amount':r.totalAmt,
+'ESI Employee':r.esiEmp,'ESI Employer':r.esiEr,
+'EPF Employee':r.epfEmp,'EPF Employer':r.epfEr,
+'Prof Tax':r.pt,'Advance':r.advDed,'Loan':r.loanDed,'Uniform':r.uniDed,'Fine/Misc':r.fineDed,
+'Total Deduction':r.totalDed,'Net Pay':r.netPay
+}));
+const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb,ws,'Govt Salary Sheet');
+XLSX.writeFile(wb,`Heebee_Govt_Salary_${mo}.xlsx`);
+showToast('Govt sheet Excel downloaded');}
+
+function whatsappGovtSheet(){
+if(!_govtSheetData.length){showToast('Generate sheet first');return;}
+const pf=getPfGuy();const phone=pf.phone||'';
+if(!phone){showToast('Set PF guy WhatsApp number in Settings');return;}
+const mo=getMonth();const split=getSplitConfig();
+const t={n:_govtSheetData.length,ta:0,td:0,np:0};
+_govtSheetData.forEach(r=>{t.ta+=r.totalAmt;t.td+=r.totalDed;t.np+=r.netPay;});
+const msg=`*HEEBEE COFFEE PVT. LTD.*%0A*Govt Salary Sheet — ${mo}*%0A%0A${t.n} employees%0ATotal Gross: ₹${t.ta.toLocaleString('en-IN')}%0ATotal Deductions: ₹${t.td.toLocaleString('en-IN')}%0A*Total Net Pay: ₹${t.np.toLocaleString('en-IN')}*%0A%0ASplit: Basic ${split.basicPct}%25 · HRA ${split.hraPct}%25 of Basic%0A%0APlease review and approve. Download the full sheet from the HR system.%0A%0A— Heebee HR System`;
+const url=`https://wa.me/${phone.startsWith('91')?'':'91'}${phone}?text=${msg}`;
+window.open(url,'_blank');
+showToast('WhatsApp opened for '+( pf.name||'PF guy'));}
+
+// ─── PHASE 3: ECR EXPORT FOR EPFO ──────────────────
+function populateEcrMonths(){
+const sel=document.getElementById('ecrWageMonth');if(!sel)return;
+const now=new Date();const opts=['<option value="">Select Wage Month</option>'];
+for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+const v=d.toISOString().slice(0,7);const label=d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+opts.push(`<option value="${v}">${label}</option>`);}
+sel.innerHTML=opts.join('');}
+
+async function generateECR(){
+const mo=document.getElementById('ecrWageMonth')?.value;
+if(!mo){showToast('Select a wage month');return;}
+_employees=await window.dbGet('employees')||{};
+const split=getSplitConfig();
+// ECR only includes PF-covered employees (those with UAN or PF number)
+let list=Object.entries(_employees).map(([k,e])=>({k,...e})).filter(e=>e.status==='Active'&&(e.uan_no||e.pf_no));
+list.sort((a,b)=>(a.emp_id||'').localeCompare(b.emp_id||''));
+
+if(!list.length){document.getElementById('ecrPreview').innerHTML='<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No PF-covered employees found (need UAN or PF number)</div></div>';return;}
+
+// ECR format: UAN#Member Name#Gross Wages#EPF Wages#EPS Wages#EDLI Wages#EPF Contribution(EE)#EPS Contribution#EPF Diff
+// Pipe-delimited in actual EPFO format
+const ecrLines=[];const tableRows=[];
+let totGross=0,totEpfWage=0,totEpfEE=0,totEPS=0;
+
+list.forEach(e=>{
+const ctc=Number(e.ctc)||Number(e.basic)||0;
+const g=calcGovtSplit(ctc);
+const rem=(e.remuneration_log||{})[mo]||{};
+const wDays=Number(rem.working_days)||26;
+const hDays=Number(rem.holiday_days)||4;
+const totalDays=wDays+hDays;
+const ratio=totalDays>=30?1:totalDays/30;
+const basicPaid=Math.round(g.basic*ratio);
+const grossPaid=Math.round(ctc*ratio);
+const epfWage=basicPaid; // EPF is on basic
+const epsWage=Math.min(epfWage,15000); // EPS capped at ₹15,000
+const edliWage=Math.min(epfWage,15000); // EDLI also capped
+const epfEE=Math.round(epfWage*split.epfEmpPct/100);
+const epsContrib=Math.round(epsWage*8.33/100);
+const epfDiff=0; // Usually 0
+
+// ECR line (pipe-delimited)
+const uan=e.uan_no||'';
+ecrLines.push([uan,e.name||'',grossPaid,epfWage,epsWage,edliWage,epfEE,epsContrib,epfDiff,'','','',wDays+hDays].join('#'));
+
+totGross+=grossPaid;totEpfWage+=epfWage;totEpfEE+=epfEE;totEPS+=epsContrib;
+tableRows.push({uan,name:e.name,empId:e.emp_id,gross:grossPaid,epfWage,epsWage,edliWage,epfEE,epsContrib,days:wDays+hDays});
+});
+
+const ecrText=ecrLines.join('\n');
+const preview=document.getElementById('ecrPreview');
+preview.innerHTML=`
+<div style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px">ECR FILE — ${mo} — ${list.length} PF MEMBERS</div>
+<div style="overflow-x:auto"><table class="remun-table" style="font-size:.72rem">
+<thead><tr><th>UAN</th><th>Name</th><th>Gross</th><th>EPF Wage</th><th>EPS Wage</th><th>EDLI</th><th>EPF (EE)</th><th>EPS</th><th>Days</th></tr></thead>
+<tbody>${tableRows.map(r=>`<tr><td style="font-family:Space Mono,monospace;font-size:.6rem">${r.uan||'—'}</td><td>${r.name}</td>
+<td>₹${r.gross.toLocaleString('en-IN')}</td><td>₹${r.epfWage.toLocaleString('en-IN')}</td><td>₹${r.epsWage.toLocaleString('en-IN')}</td>
+<td>₹${r.edliWage.toLocaleString('en-IN')}</td><td>₹${r.epfEE.toLocaleString('en-IN')}</td><td>₹${r.epsContrib.toLocaleString('en-IN')}</td><td>${r.days}</td></tr>`).join('')}
+<tr style="border-top:2px solid var(--gold);font-weight:600"><td colspan="2">TOTAL</td>
+<td>₹${totGross.toLocaleString('en-IN')}</td><td>₹${totEpfWage.toLocaleString('en-IN')}</td><td></td><td></td>
+<td>₹${totEpfEE.toLocaleString('en-IN')}</td><td>₹${totEPS.toLocaleString('en-IN')}</td><td></td></tr>
+</tbody></table></div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn-primary" style="min-width:auto" onclick="downloadECRFile()">◎ Download ECR Text File</button>
+<button class="btn-ghost" style="min-width:auto" onclick="downloadECRExcel()">◇ Download as Excel</button>
+</div>
+<div style="margin-top:12px;font-size:.75rem;color:var(--text3)">
+<b>PF Code:</b> LDLDH2320080000 · <b>Members:</b> ${list.length} · <b>Total EPF (EE+ER):</b> ₹${(totEpfEE+Math.round(totEpfWage*split.epfErPct/100)).toLocaleString('en-IN')}
+</div>`;
+
+// Store for download
+window._ecrText=ecrText;window._ecrTableRows=tableRows;window._ecrMonth=mo;
+showToast('ECR generated — '+list.length+' PF members');}
+
+function downloadECRFile(){
+if(!window._ecrText){showToast('Generate ECR first');return;}
+const blob=new Blob([window._ecrText],{type:'text/plain'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download=`ECR_LDLDH2320080000_${window._ecrMonth}.txt`;a.click();
+URL.revokeObjectURL(a.href);showToast('ECR file downloaded');}
+
+function downloadECRExcel(){
+if(!window._ecrTableRows){showToast('Generate ECR first');return;}
+const rows=window._ecrTableRows.map(r=>({
+'UAN':r.uan,'Member Name':r.name,'Gross Wages':r.gross,'EPF Wages':r.epfWage,
+'EPS Wages':r.epsWage,'EDLI Wages':r.edliWage,'EPF Contribution (EE)':r.epfEE,
+'EPS Contribution':r.epsContrib,'NCP Days':0,'Refund of Advances':'','Arrear Days':0
+}));
+const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb,ws,'ECR');
+XLSX.writeFile(wb,`ECR_LDLDH2320080000_${window._ecrMonth}.xlsx`);
+showToast('ECR Excel downloaded');}
 
 // ─── AUTO-LOGIN ON REFRESH ──────────────────────────
 (function(){
