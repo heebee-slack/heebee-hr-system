@@ -387,6 +387,12 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div><label class="settings-label">ESI Gross Threshold (₹)</label><input class="settings-input" type="number" id="splitESIthreshold" placeholder="21000" style="text-align:center"></div>
 <div><label class="settings-label">Prof. Tax / Month (₹)</label><input class="settings-input" type="number" id="splitProfTax" placeholder="200" style="text-align:center"></div>
 </div>
+<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px">
+<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:4px">EPF STATUTORY CAP</div>
+<div style="font-size:.82rem;color:var(--text2)">EPF contributions capped at 12% of <b>₹15,000</b> = <b>₹1,800/month</b> max per employee (both EE & ER). Employees with Basic above ₹15,000 still only pay ₹1,800 PF unless they voluntarily opt for higher contribution.</div>
+</div>
+</div>
 <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:16px">
 <div class="detail-label" style="margin-bottom:8px">Live Preview — ₹15,200 CTC Barista</div>
 <div id="splitPreview" style="font-size:.82rem;color:var(--text2);line-height:1.8"></div>
@@ -1159,15 +1165,16 @@ if(bPct+hPct>100)hPct=100-bPct;
 const splPct=Math.max(0,100-bPct-hPct);
 const ctc=15200;
 const basic=Math.round(ctc*bPct/100),hra=Math.round(ctc*hPct/100),spl=ctc-basic-hra;
-const esiEmp=g('splitESIemp')||0.75,epfEmp=g('splitEPFemp')||12,pt=g('splitProfTax')||200;
+const esiEmpPct=g('splitESIemp')||0.75,epfEmpPct=g('splitEPFemp')||12,pt=g('splitProfTax')||200;
 const esiThresh=g('splitESIthreshold')||21000;
-const esi=ctc<=esiThresh?Math.round(ctc*esiEmp/100):0;
-const epf=Math.round(basic*epfEmp/100);
+const esi=ctc<=esiThresh?Math.round(ctc*esiEmpPct/100):0;
+const epfWage=Math.min(basic,15000);
+const epf=Math.round(epfWage*epfEmpPct/100);
 const net=ctc-esi-epf-pt;
 const el=document.getElementById('splitPreview');
 if(!el)return;
 const ok=bPct+hPct+splPct===100;
-el.innerHTML=`${ok?'':'<div style="color:#e05;margin-bottom:6px;font-weight:600">⚠ Split must equal 100%</div>'}Basic: <b>₹${basic.toLocaleString('en-IN')}</b> (${bPct}%) + HRA: <b>₹${hra.toLocaleString('en-IN')}</b> (${hPct}%) + Spl Allow: <b>₹${spl.toLocaleString('en-IN')}</b> (${splPct}%) = <b>₹${(basic+hra+spl).toLocaleString('en-IN')}</b> (100%)<br>ESI: ₹${esi} · EPF: ₹${epf} · Prof Tax: ₹${pt} · <span style="color:var(--gold);font-weight:600">Net: ₹${net.toLocaleString('en-IN')}</span>`;
+el.innerHTML=`${ok?'':'<div style="color:#e05;margin-bottom:6px;font-weight:600">⚠ Split must equal 100%</div>'}Basic: <b>₹${basic.toLocaleString('en-IN')}</b> (${bPct}%) + HRA: <b>₹${hra.toLocaleString('en-IN')}</b> (${hPct}%) + Spl Allow: <b>₹${spl.toLocaleString('en-IN')}</b> (${splPct}%) = <b>₹${(basic+hra+spl).toLocaleString('en-IN')}</b> (100%)<br>ESI: ₹${esi} · EPF: ₹${epf} ${basic>15000?'<span style="color:var(--gold);font-size:.7rem">(capped at ₹15k)</span>':''} · Prof Tax: ₹${pt} · <span style="color:var(--gold);font-weight:600">Net: ₹${net.toLocaleString('en-IN')}</span>`;
 const splD=document.getElementById('splitSplDisplay');
 if(splD)splD.textContent=`${splPct}%`;}
 
@@ -1185,14 +1192,17 @@ const gross=ctc;
 const esiApplicable=gross<=s.esiThreshold;
 const esiEmp=esiApplicable?Math.round(gross*s.esiEmpPct/100):0;
 const esiEr=esiApplicable?Math.round(gross*s.esiErPct/100):0;
-const epfEmp=epfOptedOut?0:Math.round(basic*s.epfEmpPct/100);
-const epfEr=epfOptedOut?0:Math.round(basic*s.epfErPct/100);
-const pension=epfOptedOut?0:Math.round(basic*8.33/100);
+// EPF statutory cap: contributions calculated on min(basic, ₹15,000)
+const EPF_WAGE_CEILING=15000;
+const epfWage=Math.min(basic,EPF_WAGE_CEILING);
+const epfEmp=epfOptedOut?0:Math.round(epfWage*s.epfEmpPct/100);
+const epfEr=epfOptedOut?0:Math.round(epfWage*s.epfErPct/100);
+const pension=epfOptedOut?0:Math.round(Math.min(epfWage,15000)*8.33/100);
 const epfErActual=epfEr-pension;
 const pt=s.profTax;
 const totalDed=esiEmp+epfEmp+pt;
 const net=gross-totalDed;
-return{basic,hra,spl,gross,esiEmp,esiEr,epfEmp,epfEr,pension,epfErActual,pt,totalDed,net,esiApplicable};}
+return{basic,hra,spl,gross,esiEmp,esiEr,epfEmp,epfEr,pension,epfErActual,pt,totalDed,net,esiApplicable,epfWage};}
 
 function renderGovtSplitCard(empKey){
 const e=_employees[empKey];if(!e)return;
