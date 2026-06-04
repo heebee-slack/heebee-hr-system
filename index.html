@@ -1483,12 +1483,29 @@ XLSX.writeFile(wb,`ECR_LDLDH2320080000_${window._ecrMonth}.xlsx`);
 showToast('ECR Excel downloaded');}
 
 // ─── AUTO-LOGIN ON REFRESH ──────────────────────────
+function bootApp(){
+  loadSettings();
+  renderDirectory();renderEmployeeList();renderAllEmployees();
+}
+function waitForFirebaseAndBoot(){
+  if(window.initFirebase){
+    loadSettings();
+    // Firebase init is sync once module loaded, but db connect is async
+    // Give it a moment then render
+    setTimeout(()=>{renderDirectory();renderEmployeeList();renderAllEmployees();},300);
+  }else{
+    setTimeout(waitForFirebaseAndBoot,200);
+  }
+}
 (function(){
 const u=sessionStorage.getItem('hb_hr_user');
-if(u&&USERS[u]){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}
+if(u&&USERS[u]){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('appLayout').style.display='flex';
+  waitForFirebaseAndBoot();
+}
 updateBioUI();
-// Auto-trigger biometric on load if registered and not logged in
-if(!u&&getBioData()){setTimeout(()=>biometricLogin(),500);}
+if(!u&&getBioData()){setTimeout(()=>biometricLogin(),600);}
 })();
 </script>
 </body>
