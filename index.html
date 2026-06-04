@@ -629,14 +629,14 @@ ${remRows?`<div style="overflow-x:auto"><table class="remun-table"><thead><tr><t
 <div class="glass-card" style="margin-bottom:14px">
 <div class="section-title">Govt-Compliant Salary Card (Auto-Split)</div>
 <div id="govtSplitCard_${empKey}" style="font-size:.82rem;color:var(--text2)"></div>
-<script>renderGovtSplitCard('${empKey}');</script>
 </div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">HR Notes</div>
 ${(e.notes||[]).map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border2)"><div style="font-size:.78rem;color:var(--text2)">${n.text}</div><div style="font-family:Space Mono,monospace;font-size:.4rem;color:var(--text3);margin-top:4px">${new Date(n.ts).toLocaleDateString('en-IN')}</div></div>`).join('')}
 <div style="margin-top:12px;display:flex;gap:8px"><textarea class="notes-area" id="newNote_${empKey}" placeholder="Add a note..." rows="2" style="flex:1"></textarea>
 <button class="btn-primary" style="width:auto;padding:10px 16px;align-self:flex-end" onclick="addNote('${empKey}')">Add</button></div></div>`;
 if(panel==='onboarding'){$el('empListView').style.display='none';$el('empDetailView').style.display='block';$el('empDetailView').innerHTML=html;}
-else{$el('allEmpView').style.display='none';$el('allEmpDetail').style.display='block';$el('allEmpDetail').innerHTML=html;}}
+else{$el('allEmpView').style.display='none';$el('allEmpDetail').style.display='block';$el('allEmpDetail').innerHTML=html;}
+setTimeout(()=>renderGovtSplitCard(empKey),50);}
 function $el(id){return document.getElementById(id);}
 function dv(l,v){return`<div class="detail-item"><div class="detail-label">${l}</div><div class="detail-val">${v||'—'}</div></div>`;}
 function N(v){return Number(v||0).toLocaleString('en-IN');}
