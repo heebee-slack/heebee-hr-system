@@ -430,6 +430,14 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <button class="save-btn" id="bioRemoveBtn" style="display:none;background:none;color:#e05;border:1px solid rgba(238,0,85,0.3);margin-top:8px" onclick="removeBiometric()">Remove Biometric</button>
 </div>
 <div class="settings-section">
+<div class="section-title">HR Admin Password</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:12px">Used for irreversible actions like reversing EPF opt-out. Default: "heebee"</p>
+<div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end">
+<div><label class="settings-label">HR Password</label><input class="settings-input" type="password" id="hrPassword" placeholder="heebee" style="margin-bottom:0"></div>
+<button class="save-btn" onclick="const p=document.getElementById('hrPassword').value.trim();if(p.length<4){showToast('Min 4 characters');return;}setHRPassword(p);showToast('HR password updated');">Update</button>
+</div>
+</div>
+<div class="settings-section">
 <div class="section-title">Access</div>
 <p style="font-size:.8rem;color:var(--text3);font-weight:300">HR: hr@heebeecoffee.com · 1234<br>Owner: gavish@heebeecoffee.com · 0000<br>Owner: nitigya@heebeecoffee.com · 1111</p>
 </div>
@@ -662,22 +670,23 @@ ${dv('Aadhaar',e.aadhaar?e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3'):'
 <div class="section-title">EPF / Provident Fund</div>
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
 <div>
-<div style="font-size:.92rem;font-weight:600;color:var(--text);margin-bottom:4px">${e.epf_opted_out?'<span style="color:#ef4444">◈ EPF Opted Out</span>':'<span style="color:#10b981">◈ EPF Enrolled</span>'}</div>
-<div style="font-size:.75rem;color:var(--text3);max-width:500px">${e.epf_opted_out?'Employee has opted out of EPF scheme via Form 11. No PF deductions applied. No UAN generated.':'Employee is enrolled in EPF. Monthly contributions: 12% employee + 12% employer on Basic pay.'}</div>
+<div style="font-size:.92rem;font-weight:600;color:var(--text);margin-bottom:4px">${e.epf_opted_out?'<span style="color:#ef4444">◈ EPF Opted Out — PERMANENT</span>':'<span style="color:#10b981">◈ EPF Enrolled</span>'}</div>
+<div style="font-size:.75rem;color:var(--text3);max-width:500px">${e.epf_opted_out?`Employee permanently opted out on ${e.epf_opted_out_date?new Date(e.epf_opted_out_date).toLocaleDateString('en-IN'):'—'}. No PF deductions. No UAN. This cannot be reversed.`:'Employee is enrolled in EPF. Monthly contributions: 12% of Basic (capped at ₹15,000) = max ₹1,800/month each.'}</div>
 ${e.uan_no?`<div style="font-family:Space Mono,monospace;font-size:.48rem;color:var(--gold);margin-top:4px">UAN: ${e.uan_no}</div>`:''}
 </div>
 <div style="display:flex;align-items:center;gap:12px">
 <label class="toggle-switch"><input type="checkbox" ${e.epf_opted_out?'':'checked'} onchange="toggleEPF('${empKey}',!this.checked)"><span class="toggle-track"></span></label>
-<span style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)">${e.epf_opted_out?'OPTED OUT':'ENROLLED'}</span>
+<span style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:${e.epf_opted_out?'#ef4444':'var(--text3)'}">${e.epf_opted_out?'LOCKED — OPTED OUT':'ENROLLED'}</span>
 </div>
 </div>
 ${e.epf_opted_out?`<div style="margin-top:12px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:14px">
-<div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:#ef4444;margin-bottom:8px">OPT-OUT REQUIREMENTS</div>
+<div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:#ef4444;margin-bottom:8px">PERMANENT OPT-OUT — FORMS REQUIRED</div>
 <div style="font-size:.78rem;color:var(--text2);line-height:1.6">
-◈ Employee must sign <b>Form 11</b> + written declaration (Annexure C)<br>
+◈ Employee must sign <b>Form 11</b> — <a href="${FORM11_URL}" target="_blank" style="color:var(--gold)">Download Form 11</a><br>
+◈ Employee must sign <b>Annexure C</b> — <a href="${ANNEXURE_C_URL}" target="_blank" style="color:var(--gold)">Download Annexure C</a><br>
 ◈ Must be a <b>fresh joinee</b> — never been an EPF member before (no existing UAN)<br>
 ◈ Basic salary must exceed <b>₹15,000/month</b><br>
-◈ Once opted out at joining, this <b>cannot be reversed</b>
+◈ This is <b>permanent and irreversible</b> (HR password required to override)
 </div></div>`:''}
 </div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">Documents</div>
@@ -730,16 +739,27 @@ await window.dbUpdate('employees/'+ek,{status:newStatus,last_working_day:newStat
 showToast('Status → '+newStatus);openEmpDetail(ek,_detailPanel);}
 
 // ─── EPF OPT-IN / OPT-OUT TOGGLE ───────────────────
+// HR password for irreversible actions (default: heebee, changeable in Settings)
+const HR_PWD_KEY='hb_hr_pwd';
+function getHRPassword(){return localStorage.getItem(HR_PWD_KEY)||'heebee';}
+function setHRPassword(p){localStorage.setItem(HR_PWD_KEY,p);}
+
+// Form URLs on GitHub Pages
+const FORM_BASE='https://heebee-slack.github.io/heebee-hr-system';
+const FORM11_URL=FORM_BASE+'/EPFO_Form_11.pdf';
+const ANNEXURE_C_URL=FORM_BASE+'/EPFO_Annexure_C_OptOut.pdf';
+
 async function toggleEPF(empKey,optOut){
 const e=_employees[empKey];if(!e)return;
 if(optOut){
-  // Opting OUT — validate eligibility and send WhatsApp
-  const basic=Number(e.basic)||0;
-  if(e.uan_no&&e.uan_no.trim()){
-    showToast('Cannot opt out — employee already has a UAN (existing PF member)');return;}
-  await window.dbUpdate('employees/'+empKey,{epf_opted_out:true,pf_no:'',uan_no:''});
-  showToast('EPF opted out for '+e.name);
-  // Send WhatsApp with full explanation + Form 11 info
+  // Opting OUT — this is PERMANENT
+  if(e.uan_no&&e.uan_no.trim()){showToast('Cannot opt out — employee already has a UAN');return;}
+  // Confirm with HR
+  const confirmed=confirm(`⚠ PERMANENT ACTION\n\nYou are opting ${e.name} OUT of EPF.\n\nThis CANNOT be reversed. The employee will never have PF deductions or a UAN.\n\nAre you sure?`);
+  if(!confirmed)return;
+  await window.dbUpdate('employees/'+empKey,{epf_opted_out:true,epf_opted_out_date:new Date().toISOString(),pf_no:'',uan_no:''});
+  showToast('EPF permanently opted out for '+e.name);
+  // Send WhatsApp with explanation + form download links
   const phone=(e.phone||'').replace(/\D/g,'');
   if(phone){
     const msg=encodeURIComponent(
@@ -748,47 +768,66 @@ if(optOut){
 
 Dear ${e.name},
 
-As per your request, you are choosing to *opt out of the Employees' Provident Fund (EPF) scheme* at the time of joining Heebee Coffee.
+As per your request, you are choosing to *opt out of the Employees' Provident Fund (EPF) scheme* at the time of joining Heebee Coffee Pvt. Ltd.
 
-*What this means:*
-◈ No Provident Fund (PF) deductions will be made from your salary
-◈ No Universal Account Number (UAN) will be generated for you
-◈ The employer will also not contribute to your PF account
-◈ This decision is *permanent* and cannot be reversed once processed
+*What this means for you:*
 
-*Eligibility conditions you must meet:*
-1. You must be a *fresh joinee* — you have never been a member of any EPF or Pension Scheme previously
-2. You do not have a previously generated UAN
-3. Your Basic salary exceeds ₹15,000 per month
+1. *No PF Deductions* — No amount will be deducted from your salary towards Provident Fund
+2. *No UAN* — No Universal Account Number will be generated for you
+3. *No Employer PF Contribution* — The company will not contribute to any PF account on your behalf
+4. *No Pension Scheme* — You will not be covered under the Employees' Pension Scheme (EPS), 1995
+5. *No EDLI* — You will not be covered under the Employees' Deposit Linked Insurance Scheme, 1976
+6. *PERMANENT Decision* — Once processed, this decision *cannot be reversed*. You cannot enroll in EPF later at this company.
 
-*Documents required from you:*
-📋 *Form 11* — Declaration of non-membership (you must fill and sign this)
-📋 *Annexure C* — Written declaration opting out of EPF
-📋 *Copy of Aadhaar Card*
-📋 *Copy of PAN Card*
+*Who is eligible to opt out:*
+◈ You must be a *fresh joinee* who has NEVER been a member of EPF at any previous employer
+◈ You must NOT have a previously generated UAN (Universal Account Number)
+◈ Your Basic salary must exceed ₹15,000 per month
+◈ This declaration must be made ONLY at the time of joining
 
-Please submit these signed documents to HR at the time of joining.
+*⚠ WARNING:* If you have ever been enrolled in EPF at ANY previous employer, you are NOT eligible to opt out. Making a false declaration is a *punishable offence* under the EPF & Miscellaneous Provisions Act, 1952.
 
-*Important:* If you have ever been enrolled in EPF at any previous employer, you are NOT eligible to opt out and must continue contributing. Making a false declaration is a legal offence under the EPF Act.
+*Documents you MUST fill, sign and submit to HR:*
 
-If you have any questions, please contact HR.
+📋 *Form 11 (Declaration Form)* — Download here:
+${FORM11_URL}
+
+📋 *Annexure C (Opt-Out Declaration)* — Download here:
+${ANNEXURE_C_URL}
+
+Also bring:
+📋 Copy of your Aadhaar Card
+📋 Copy of your PAN Card
+
+Please print both forms, fill in all details, sign them, and submit to HR along with Aadhaar & PAN copies *before your joining date*.
+
+If you have any doubts or questions, please contact HR immediately before signing.
 
 — Heebee Coffee HR System
+Employee: ${e.name}
 Emp ID: ${e.emp_id}
-Date: ${new Date().toLocaleDateString('en-IN')}`);
+Date: ${new Date().toLocaleDateString('en-IN')}
+PF Code: LDLDH2320080000`);
     const waUrl=`https://wa.me/${phone.startsWith('91')?'':'91'}${phone}?text=${msg}`;
     window.open(waUrl,'_blank');
-    showToast('WhatsApp sent to '+e.name);
+    showToast('WhatsApp sent with Form 11 + Annexure C links');
   }else{showToast('No phone number — add phone to send WhatsApp');}
-  // Add note
-  const notes=[...(e.notes||[]),{text:'EPF opted out. WhatsApp notification sent with Form 11 requirements.',ts:new Date().toISOString()}];
+  const notes=[...(e.notes||[]),{text:`EPF permanently opted out. WhatsApp sent with Form 11 & Annexure C download links. Opted out on ${new Date().toLocaleDateString('en-IN')}.`,ts:new Date().toISOString()}];
   await window.dbUpdate('employees/'+empKey,{notes});
 }else{
-  // Opting back IN
-  await window.dbUpdate('employees/'+empKey,{epf_opted_out:false});
-  showToast('EPF re-enrolled for '+e.name);
-  const notes=[...(e.notes||[]),{text:'EPF re-enrolled.',ts:new Date().toISOString()}];
-  await window.dbUpdate('employees/'+empKey,{notes});
+  // Trying to re-enable — BLOCKED unless HR password entered
+  if(e.epf_opted_out){
+    const pwd=prompt('EPF opt-out is PERMANENT.\n\nTo override this (HR emergency only), enter the HR password:');
+    if(!pwd||pwd!==getHRPassword()){showToast('Incorrect password — opt-out cannot be reversed');return;}
+    const reason=prompt('Enter reason for reversing the opt-out (this will be logged):');
+    if(!reason||!reason.trim()){showToast('Reason required');return;}
+    await window.dbUpdate('employees/'+empKey,{epf_opted_out:false,epf_opted_out_date:''});
+    showToast('EPF re-enrolled (HR override) for '+e.name);
+    const notes=[...(e.notes||[]),{text:`EPF opt-out REVERSED by HR (password override). Reason: ${reason.trim()}`,ts:new Date().toISOString()}];
+    await window.dbUpdate('employees/'+empKey,{notes});
+  }else{
+    await window.dbUpdate('employees/'+empKey,{epf_opted_out:false});
+    showToast('EPF enrolled for '+e.name);
 }
 openEmpDetail(empKey,_detailPanel);}
 
