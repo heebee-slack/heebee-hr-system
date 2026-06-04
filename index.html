@@ -478,8 +478,8 @@ const all=Object.values(_employees).filter(e=>e.status==='Active');
 const ghb=all.filter(e=>e.outlet==='GHB').length,shb=all.filter(e=>e.outlet==='SHB').length,jld=all.filter(e=>e.outlet==='JLD').length;
 document.getElementById('outletSummary').innerHTML=`
 <div class="summary-card"><div class="summary-card-value">${all.length}</div><div class="summary-card-label">Total Active</div></div>
-<div class="summary-card"><div class="summary-card-value">${ghb}</div><div class="summary-card-label">GHB — Ludhiana</div></div>
-<div class="summary-card"><div class="summary-card-value">${shb}</div><div class="summary-card-label">SHB — Ghumar Mandi</div></div>
+<div class="summary-card"><div class="summary-card-value">${ghb}</div><div class="summary-card-label">GHB — Ghumar Mandi</div></div>
+<div class="summary-card"><div class="summary-card-value">${shb}</div><div class="summary-card-label">SHB — Sarabha Nagar</div></div>
 <div class="summary-card"><div class="summary-card-value">${jld}</div><div class="summary-card-label">JLD — Jalandhar</div></div>`;
 if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No employees found</div></div>';return;}
 el.innerHTML=list.map(e=>empRowHTML(e,'all')).join('');}
@@ -496,7 +496,7 @@ function openHireModal(cid){_hiringCandId=cid;const c=_candidates[cid]||_current
 document.getElementById('hireModal').innerHTML=`
 <div class="popup-header"><div><div class="candidate-name">Hire: ${c.name||'Candidate'}</div><div class="candidate-role">Create Employee Profile</div></div><button class="popup-close" onclick="closeHireModal()">✕</button></div>
 <div class="popup-body"><div class="hire-form">
-<div class="hire-form-field"><label>Outlet</label><select id="h_outlet"><option value="GHB">GHB — Sarabha Nagar</option><option value="SHB">SHB — Ghumar Mandi</option><option value="JLD">JLD — Jalandhar</option></select></div>
+<div class="hire-form-field"><label>Outlet</label><select id="h_outlet"><option value="GHB">GHB — Ghumar Mandi</option><option value="SHB">SHB — Sarabha Nagar</option><option value="JLD">JLD — Jalandhar</option></select></div>
 <div class="hire-form-field"><label>Department</label><select id="h_dept"><option value="D00">D00 — Ops</option><option value="D01">D01 — Office</option><option value="D03">D03 — Jalandhar</option></select></div>
 <div class="hire-form-field"><label>Position</label><input id="h_position" value="${c.screening?.suggested_role||c.current_role||''}"></div>
 <div class="hire-form-field"><label>Joining Date</label><input id="h_joining" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
@@ -725,7 +725,7 @@ const data=rows.slice(hdr+1).filter(r=>r[1]&&String(r[1]).trim()&&!String(r[1]).
 _employees=await window.dbGet('employees')||{};const existing=new Set(Object.values(_employees).map(e=>normName(e.name)));
 let created=0,skipped=0;
 for(const row of data){const name=String(row[1]||'').trim();if(!name||existing.has(normName(name)))  {skipped++;continue;}
-const branch=String(row[3]||'').trim().toLowerCase();const outlet=branch.includes('jal')?'JLD':'GHB';
+const branch=String(row[3]||'').trim().toLowerCase();const outlet=branch.includes('jal')?'JLD':branch.includes('ghum')?'GHB':'SHB';
 const dept=branch.includes('jal')?'D03':'D00';const key=normName(name).replace(/\s+/g,'_');
 await window.dbSet('employees/'+key,{emp_id:'',name,phone:'',email:'',address:'',father_name:String(row[2]||'').trim(),
 outlet,department:dept,position:String(row[4]||'').trim(),joining_date:row[5]instanceof Date?row[5].toISOString().slice(0,10):'',
@@ -742,7 +742,7 @@ function generateSlip(ek,month){const e=_employees[ek];if(!e)return;const rem=(e
 const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});const W=210,gld=[184,134,11];
 doc.setFillColor(15,15,20);doc.rect(0,0,W,42,'F');
 doc.setTextColor(240,192,64);doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text('HEEBEE COFFEE PVT. LTD.',W/2,14,{align:'center'});
-doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(160,160,170);doc.text('Sarabha Nagar, Ludhiana, Punjab — 141001',W/2,21,{align:'center'});
+doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(160,160,170);doc.text('B-XIX-353/14 Dr. Hira Singh Road, Civil Lines, Ludhiana, Punjab',W/2,21,{align:'center'});
 doc.setTextColor(240,192,64);doc.setFontSize(9);doc.setFont('helvetica','bold');
 const[yr,mo]=month.split('-');const moN=['','January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mo)]||month;
 doc.text(`SALARY SLIP — ${moN.toUpperCase()} ${yr}`,W/2,31,{align:'center'});
@@ -787,60 +787,60 @@ doc.save(`Heebee_Salary_${(e.name||'EMP').replace(/\s+/g,'_')}_${month}.pdf`);}
 // ─── SEED APRIL 2026 DATA ──────────────────────────
 async function seedApril2026(){const st=document.getElementById('seedStatus');st.textContent='Seeding...';st.style.color='var(--text3)';
 const emps=[
-{id:'EMP0012',name:'Gavish Batra',father:'Suresh Batra',outlet:'GHB',dept:'D02',pos:'Director',basic:125000,join:''},
-{id:'EMP0022',name:'Nitigya Soni',father:'Neeraj Soni',outlet:'GHB',dept:'D02',pos:'Director',basic:125000,join:''},
-{id:'EMP0042',name:'Anamika Deep Kaur',father:'Tejinder Singh',outlet:'GHB',dept:'D01',pos:'Accountant',basic:30770,hra:9230,join:'2023-01-09'},
-{id:'EMP0052',name:'Payal Soni',father:'Neeraj Soni',outlet:'GHB',dept:'D01',pos:'HOD',basic:87500,join:'2023-07-01'},
-{id:'EMP0062',name:'Narendra Singh',father:'Hayat Singh',outlet:'GHB',dept:'D01',pos:'Chef Baker',basic:23370,hra:0,conv:0,spl:3500,join:'2023-08-25'},
-{id:'EMP0084',name:'Gunjan Narang',father:'Surinder Pal Narang',outlet:'GHB',dept:'D01',pos:'HR',basic:32000,hra:10000,conv:2000,join:'2024-04-01'},
-{id:'EMP0095',name:'Kritika Singh',father:'Nitigya Soni',outlet:'GHB',dept:'D01',pos:'HOD',basic:79847,join:'2024-06-01'},
-{id:'EMP0120',name:'Santosh Batra',father:'Suresh Batra',outlet:'GHB',dept:'D01',pos:'Admin',basic:50000,join:'2024-07-01'},
-{id:'EMP0121',name:'Nistha Batra',father:'Suresh Batra',outlet:'GHB',dept:'D01',pos:'Admin',basic:32706,join:'2024-07-01'},
-{id:'EMP0159',name:'Jaspreet Kaur',father:'Tarwinder Singh',outlet:'GHB',dept:'D01',pos:'Asst. Accountant',basic:15800,pf:'10114',esi:'2614932213',uan:'102175172326',join:'2025-02-20'},
-{id:'EMP0204',name:'Gurdeep Singh (Driver)',father:'Gian Singh',outlet:'GHB',dept:'D01',pos:'Driver',basic:20000,esi:'2615042985',join:'2025-10-07'},
-{id:'EMP0024',name:'Pritpal Singh',father:'Sukhdev Singh',outlet:'GHB',dept:'D00',pos:'Chef Baker',basic:17700,hra:5300,pf:'10029',esi:'2614161576',uan:'101675232672',join:''},
-{id:'EMP0037',name:'Ashima Batra',father:'Gavish Batra',outlet:'GHB',dept:'D00',pos:'Admin',basic:86300,join:''},
-{id:'EMP0058',name:'Shailender',father:'Hari Ram',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:18500,hra:5000,pf:'10074',esi:'2614653551',uan:'101988332817',join:'2023-02-16'},
-{id:'EMP0089',name:'Pooja',father:'Ram Raj',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2021-09-06'},
-{id:'EMP0091',name:'Milan Chopra',father:'Shashi Pal Chopra',outlet:'GHB',dept:'D00',pos:'Chef De Partie',basic:30800,join:'2024-05-03'},
-{id:'EMP0094',name:'Simran (FM)',father:'Rahul Kumar',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:18850,hra:5650,pf:'10101',esi:'2613567852',uan:'101281632753',join:'2021-09-06'},
-{id:'EMP0117',name:'Mohammad Ibraheem',father:'Gulam Nabi Kawa',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:20900,esi:'2614828916',join:'2024-09-16'},
-{id:'EMP0123',name:'Javed Akhtar',father:'Shamshad Khan',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,esi:'2614836012',join:'2024-08-05'},
-{id:'EMP0137',name:'Shubham Kumar',father:'Sunil Kumar',outlet:'GHB',dept:'D00',pos:'Inventory Manager',basic:36500,join:'2024-09-01'},
-{id:'EMP0144',name:'Sumit Miglani',father:'Tony Miglani',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:20000,esi:'2614653063',join:'2024-12-02'},
-{id:'EMP0145',name:'Neha',father:'Mahesh Kumar',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:23500,esi:'1713948211',join:'2024-11-04'},
-{id:'EMP0149',name:'Sandeep Singh',father:'Kulwant Singh',outlet:'GHB',dept:'D00',pos:'Commi-2',basic:15000,hra:2500,pf:'10109',esi:'2614405322',uan:'101819214359',join:'2024-11-06'},
-{id:'EMP0156',name:'Amandeep Kaur',father:'Gurmeet Singh',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:21500,esi:'2614921103',join:'2025-01-25'},
-{id:'EMP0160',name:'Prabhjot Kaur',father:'Kulvinder Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614932206',join:'2025-02-25'},
-{id:'EMP0162',name:'Ritik',father:'Dharam Pal',outlet:'GHB',dept:'D00',pos:'Co-od Inventory',basic:16720,pf:'10117',esi:'2614938103',uan:'102184027267',join:'2025-03-06'},
-{id:'EMP0165',name:'Gurvinder Kaur',father:'Amrik Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15800,pf:'10125',esi:'2614945028',uan:'101938987000',join:'2025-03-21'},
-{id:'EMP0181',name:'Anarjit Kumar',father:'Kamod Yadav',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614973594',join:'2025-05-23'},
-{id:'EMP0184',name:'Gurpreet Kaur',father:'Rachhpal Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993781',join:'2025-07-01'},
-{id:'EMP0185',name:'Gurdeep Singh (DCDP)',father:'Harwinder Singh',outlet:'GHB',dept:'D00',pos:'DCDP',basic:32500,join:'2025-07-01'},
-{id:'EMP0186',name:'Kamaljit Kaur',father:'Sukhwinder Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:13750,pf:'10127',esi:'2614998804',uan:'102234784780',join:'2025-07-03'},
-{id:'EMP0003',name:'Anjni Singh',father:'Balkaran Singh',outlet:'GHB',dept:'D00',pos:'Guard',basic:12692,hra:3808,pf:'10039',esi:'2614272803',uan:'101735795047',join:''},
-{id:'EMP0199',name:'Ishpreet Singh',father:'Maninder Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615023781',join:'2025-08-22'},
-{id:'EMP0202',name:'Manpreet Kaur',father:'Bhajan Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615032360',join:'2025-09-15'},
-{id:'EMP0207',name:'Simran (Barista)',father:'Sandeep Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:13750,pf:'10129',esi:'2614866856',uan:'102125007419',join:'2025-11-03'},
-{id:'EMP0208',name:'Parvesh Heera',father:'Baldev Raj',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:15200,esi:'2615049816',join:'2025-11-03'},
-{id:'EMP0209',name:'Surjeet Singh',father:'Jaswinder Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615050470',join:'2025-11-04'},
-{id:'EMP0210',name:'Anmol Singh',father:'Suresh Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993823',join:'2025-11-04'},
-{id:'EMP0211',name:'Bipan Kumar',father:'Hari Ram',outlet:'GHB',dept:'D00',pos:'Sous Chef',basic:37000,join:'2025-11-10'},
-{id:'EMP0213',name:'Tejdeep Singh',father:'Gursewak Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615056272',join:'2025-11-17'},
-{id:'EMP0215',name:'Sarpreet Singh',father:'Manjit Singh',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:23000,join:'2025-11-22'},
-{id:'EMP0217',name:'Manik Kapoor',father:'Vikram Kapoor',outlet:'GHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615059567',join:'2025-11-25'},
-{id:'EMP0218',name:'Sunita',father:'Tek Bahadur',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:17500,esi:'2614152341',join:'2025-12-01'},
-{id:'EMP0219',name:'Manvir Kaur',father:'Avtar Singh',outlet:'GHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615064537',join:'2025-12-01'},
-{id:'EMP0220',name:'Ayush Thakur',father:'Amrik Singh',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:20000,esi:'2417677704',join:'2025-12-06'},
-{id:'EMP0222',name:'Gurpreet Singh',father:'Harpreet Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'1513484696',join:'2026-01-15'},
-{id:'EMP0223',name:'Samridhi Goyal',father:'Sachin Goyal',outlet:'GHB',dept:'D00',pos:'Bakery Chef',basic:15200,esi:'1513484603',join:'2026-01-17'},
-{id:'EMP0224',name:'Ankush Dumra',father:'Ajay Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:16500,esi:'2614547212',join:'2026-02-13'},
-{id:'EMP0225',name:'Sonia (LDH)',father:'Ramesh Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:17000,esi:'2615095812',join:'2026-02-25'},
-{id:'EMP0226',name:'Aman Bhatt',father:'Deepak Kumar',outlet:'GHB',dept:'D00',pos:'Commi-3',basic:15200,esi:'2615099361',join:'2026-03-05'},
-{id:'EMP0227',name:'Amritpal Kaur',father:'Inderjit Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615098916',join:'2026-03-09'},
-{id:'EMP0229',name:'Rakshat',father:'Sanjeev Kumar',outlet:'GHB',dept:'D00',pos:'Commi-III',basic:15200,esi:'2615100382',join:'2026-03-09'},
-{id:'EMP0231',name:'Kamanpreet Singh',father:'Khushvir Singh',outlet:'GHB',dept:'D00',pos:'Executive Assistant',basic:22000,join:'2026-04-13'},
-{id:'EMP0232',name:'Shamjeet Singh',father:'Jagtar Singh',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2026-04-20'},
+{id:'EMP0012',name:'Gavish Batra',father:'Suresh Batra',outlet:'SHB',dept:'D02',pos:'Director',basic:125000,join:''},
+{id:'EMP0022',name:'Nitigya Soni',father:'Neeraj Soni',outlet:'SHB',dept:'D02',pos:'Director',basic:125000,join:''},
+{id:'EMP0042',name:'Anamika Deep Kaur',father:'Tejinder Singh',outlet:'SHB',dept:'D01',pos:'Accountant',basic:30770,hra:9230,join:'2023-01-09'},
+{id:'EMP0052',name:'Payal Soni',father:'Neeraj Soni',outlet:'SHB',dept:'D01',pos:'HOD',basic:87500,join:'2023-07-01'},
+{id:'EMP0062',name:'Narendra Singh',father:'Hayat Singh',outlet:'SHB',dept:'D01',pos:'Chef Baker',basic:23370,hra:0,conv:0,spl:3500,join:'2023-08-25'},
+{id:'EMP0084',name:'Gunjan Narang',father:'Surinder Pal Narang',outlet:'SHB',dept:'D01',pos:'HR',basic:32000,hra:10000,conv:2000,join:'2024-04-01'},
+{id:'EMP0095',name:'Kritika Singh',father:'Nitigya Soni',outlet:'SHB',dept:'D01',pos:'HOD',basic:79847,join:'2024-06-01'},
+{id:'EMP0120',name:'Santosh Batra',father:'Suresh Batra',outlet:'SHB',dept:'D01',pos:'Admin',basic:50000,join:'2024-07-01'},
+{id:'EMP0121',name:'Nistha Batra',father:'Suresh Batra',outlet:'SHB',dept:'D01',pos:'Admin',basic:32706,join:'2024-07-01'},
+{id:'EMP0159',name:'Jaspreet Kaur',father:'Tarwinder Singh',outlet:'SHB',dept:'D01',pos:'Asst. Accountant',basic:15800,pf:'10114',esi:'2614932213',uan:'102175172326',join:'2025-02-20'},
+{id:'EMP0204',name:'Gurdeep Singh (Driver)',father:'Gian Singh',outlet:'SHB',dept:'D01',pos:'Driver',basic:20000,esi:'2615042985',join:'2025-10-07'},
+{id:'EMP0024',name:'Pritpal Singh',father:'Sukhdev Singh',outlet:'SHB',dept:'D00',pos:'Chef Baker',basic:17700,hra:5300,pf:'10029',esi:'2614161576',uan:'101675232672',join:''},
+{id:'EMP0037',name:'Ashima Batra',father:'Gavish Batra',outlet:'SHB',dept:'D00',pos:'Admin',basic:86300,join:''},
+{id:'EMP0058',name:'Shailender',father:'Hari Ram',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:18500,hra:5000,pf:'10074',esi:'2614653551',uan:'101988332817',join:'2023-02-16'},
+{id:'EMP0089',name:'Pooja',father:'Ram Raj',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2021-09-06'},
+{id:'EMP0091',name:'Milan Chopra',father:'Shashi Pal Chopra',outlet:'SHB',dept:'D00',pos:'Chef De Partie',basic:30800,join:'2024-05-03'},
+{id:'EMP0094',name:'Simran (FM)',father:'Rahul Kumar',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:18850,hra:5650,pf:'10101',esi:'2613567852',uan:'101281632753',join:'2021-09-06'},
+{id:'EMP0117',name:'Mohammad Ibraheem',father:'Gulam Nabi Kawa',outlet:'SHB',dept:'D00',pos:'Sr. Barista',basic:20900,esi:'2614828916',join:'2024-09-16'},
+{id:'EMP0123',name:'Javed Akhtar',father:'Shamshad Khan',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:24500,esi:'2614836012',join:'2024-08-05'},
+{id:'EMP0137',name:'Shubham Kumar',father:'Sunil Kumar',outlet:'SHB',dept:'D00',pos:'Inventory Manager',basic:36500,join:'2024-09-01'},
+{id:'EMP0144',name:'Sumit Miglani',father:'Tony Miglani',outlet:'SHB',dept:'D00',pos:'Sr. Barista',basic:20000,esi:'2614653063',join:'2024-12-02'},
+{id:'EMP0145',name:'Neha',father:'Mahesh Kumar',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:23500,esi:'1713948211',join:'2024-11-04'},
+{id:'EMP0149',name:'Sandeep Singh',father:'Kulwant Singh',outlet:'SHB',dept:'D00',pos:'Commi-2',basic:15000,hra:2500,pf:'10109',esi:'2614405322',uan:'101819214359',join:'2024-11-06'},
+{id:'EMP0156',name:'Amandeep Kaur',father:'Gurmeet Singh',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:21500,esi:'2614921103',join:'2025-01-25'},
+{id:'EMP0160',name:'Prabhjot Kaur',father:'Kulvinder Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614932206',join:'2025-02-25'},
+{id:'EMP0162',name:'Ritik',father:'Dharam Pal',outlet:'SHB',dept:'D00',pos:'Co-od Inventory',basic:16720,pf:'10117',esi:'2614938103',uan:'102184027267',join:'2025-03-06'},
+{id:'EMP0165',name:'Gurvinder Kaur',father:'Amrik Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15800,pf:'10125',esi:'2614945028',uan:'101938987000',join:'2025-03-21'},
+{id:'EMP0181',name:'Anarjit Kumar',father:'Kamod Yadav',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614973594',join:'2025-05-23'},
+{id:'EMP0184',name:'Gurpreet Kaur',father:'Rachhpal Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993781',join:'2025-07-01'},
+{id:'EMP0185',name:'Gurdeep Singh (DCDP)',father:'Harwinder Singh',outlet:'SHB',dept:'D00',pos:'DCDP',basic:32500,join:'2025-07-01'},
+{id:'EMP0186',name:'Kamaljit Kaur',father:'Sukhwinder Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:13750,pf:'10127',esi:'2614998804',uan:'102234784780',join:'2025-07-03'},
+{id:'EMP0003',name:'Anjni Singh',father:'Balkaran Singh',outlet:'SHB',dept:'D00',pos:'Guard',basic:12692,hra:3808,pf:'10039',esi:'2614272803',uan:'101735795047',join:''},
+{id:'EMP0199',name:'Ishpreet Singh',father:'Maninder Singh',outlet:'SHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615023781',join:'2025-08-22'},
+{id:'EMP0202',name:'Manpreet Kaur',father:'Bhajan Singh',outlet:'SHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615032360',join:'2025-09-15'},
+{id:'EMP0207',name:'Simran (Barista)',father:'Sandeep Kumar',outlet:'SHB',dept:'D00',pos:'Barista',basic:13750,pf:'10129',esi:'2614866856',uan:'102125007419',join:'2025-11-03'},
+{id:'EMP0208',name:'Parvesh Heera',father:'Baldev Raj',outlet:'SHB',dept:'D00',pos:'Commi-1 Chef',basic:15200,esi:'2615049816',join:'2025-11-03'},
+{id:'EMP0209',name:'Surjeet Singh',father:'Jaswinder Singh',outlet:'SHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615050470',join:'2025-11-04'},
+{id:'EMP0210',name:'Anmol Singh',father:'Suresh Kumar',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993823',join:'2025-11-04'},
+{id:'EMP0211',name:'Bipan Kumar',father:'Hari Ram',outlet:'SHB',dept:'D00',pos:'Sous Chef',basic:37000,join:'2025-11-10'},
+{id:'EMP0213',name:'Tejdeep Singh',father:'Gursewak Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615056272',join:'2025-11-17'},
+{id:'EMP0215',name:'Sarpreet Singh',father:'Manjit Singh',outlet:'SHB',dept:'D00',pos:'Commi-1 Chef',basic:23000,join:'2025-11-22'},
+{id:'EMP0217',name:'Manik Kapoor',father:'Vikram Kapoor',outlet:'SHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615059567',join:'2025-11-25'},
+{id:'EMP0218',name:'Sunita',father:'Tek Bahadur',outlet:'SHB',dept:'D00',pos:'Sr. Barista',basic:17500,esi:'2614152341',join:'2025-12-01'},
+{id:'EMP0219',name:'Manvir Kaur',father:'Avtar Singh',outlet:'SHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615064537',join:'2025-12-01'},
+{id:'EMP0220',name:'Ayush Thakur',father:'Amrik Singh',outlet:'SHB',dept:'D00',pos:'Commi-1 Chef',basic:20000,esi:'2417677704',join:'2025-12-06'},
+{id:'EMP0222',name:'Gurpreet Singh',father:'Harpreet Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'1513484696',join:'2026-01-15'},
+{id:'EMP0223',name:'Samridhi Goyal',father:'Sachin Goyal',outlet:'SHB',dept:'D00',pos:'Bakery Chef',basic:15200,esi:'1513484603',join:'2026-01-17'},
+{id:'EMP0224',name:'Ankush Dumra',father:'Ajay Kumar',outlet:'SHB',dept:'D00',pos:'Barista',basic:16500,esi:'2614547212',join:'2026-02-13'},
+{id:'EMP0225',name:'Sonia (LDH)',father:'Ramesh Kumar',outlet:'SHB',dept:'D00',pos:'Barista',basic:17000,esi:'2615095812',join:'2026-02-25'},
+{id:'EMP0226',name:'Aman Bhatt',father:'Deepak Kumar',outlet:'SHB',dept:'D00',pos:'Commi-3',basic:15200,esi:'2615099361',join:'2026-03-05'},
+{id:'EMP0227',name:'Amritpal Kaur',father:'Inderjit Singh',outlet:'SHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615098916',join:'2026-03-09'},
+{id:'EMP0229',name:'Rakshat',father:'Sanjeev Kumar',outlet:'SHB',dept:'D00',pos:'Commi-III',basic:15200,esi:'2615100382',join:'2026-03-09'},
+{id:'EMP0231',name:'Kamanpreet Singh',father:'Khushvir Singh',outlet:'SHB',dept:'D00',pos:'Executive Assistant',basic:22000,join:'2026-04-13'},
+{id:'EMP0232',name:'Shamjeet Singh',father:'Jagtar Singh',outlet:'SHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2026-04-20'},
 {id:'EMP0107',name:'Sagar Kumar',father:'Kulwinder Singh',outlet:'JLD',dept:'D03',pos:'DCDP',basic:22000,esi:'2914290667',join:'2024-07-11'},
 {id:'EMP0134',name:'Sonia (JLD)',father:'Vinod Paswan',outlet:'JLD',dept:'D03',pos:'Barista',basic:16720,esi:'2614847744',join:'2024-08-14'},
 {id:'EMP0139',name:'Nikita',father:'Vijay Pegani',outlet:'JLD',dept:'D03',pos:'Barista',basic:16720,esi:'2614853831',join:'2024-09-05'},
