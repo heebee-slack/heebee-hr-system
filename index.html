@@ -361,9 +361,9 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div class="section-title">Salary Structure — PF / ESI Split</div>
 <p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:16px">Configure how CTC is split for govt compliance. Sit with your PF guy and set these. Special Allowance auto-fills the remainder.</p>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-<div><label class="settings-label">Basic % of CTC</label><input class="settings-input" type="number" id="splitBasic" placeholder="50" min="0" max="100" style="text-align:center;font-size:1rem;font-weight:600"></div>
-<div><label class="settings-label">HRA % of Basic</label><input class="settings-input" type="number" id="splitHRA" placeholder="0" min="0" max="100" style="text-align:center;font-size:1rem;font-weight:600"></div>
-<div><label class="settings-label">Spl Allowance</label><div class="settings-input" id="splitSplDisplay" style="text-align:center;font-size:1rem;font-weight:600;color:var(--gold);background:var(--surface2)">Auto</div></div>
+<div><label class="settings-label">Basic % of CTC</label><input class="settings-input" type="number" id="splitBasic" placeholder="50" min="50" max="100" style="text-align:center;font-size:1rem;font-weight:600"><div style="font-family:Space Mono,monospace;font-size:.4rem;color:var(--text3);text-align:center;margin-top:-6px">Min 50% (law)</div></div>
+<div><label class="settings-label">HRA % of CTC</label><input class="settings-input" type="number" id="splitHRA" placeholder="0" min="0" max="50" style="text-align:center;font-size:1rem;font-weight:600"></div>
+<div><label class="settings-label">Spl Allowance % of CTC</label><div class="settings-input" id="splitSplDisplay" style="text-align:center;font-size:1rem;font-weight:600;color:var(--gold);background:var(--surface2)">Auto</div><div style="font-family:Space Mono,monospace;font-size:.4rem;color:var(--text3);text-align:center;margin-top:-6px">= 100 − Basic − HRA</div></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
 <div><label class="settings-label">ESI Employee %</label><input class="settings-input" type="number" id="splitESIemp" placeholder="0.75" step="0.01" min="0" max="10" style="text-align:center"></div>
@@ -1045,16 +1045,25 @@ updateSplitPreview();}
 
 function saveSplitConfig(){
 const g=id=>Number(document.getElementById(id)?.value)||0;
-const s={basicPct:g('splitBasic'),hraPct:g('splitHRA'),esiEmpPct:g('splitESIemp'),esiErPct:g('splitESIer'),epfEmpPct:g('splitEPFemp'),epfErPct:g('splitEPFer'),esiThreshold:g('splitESIthreshold'),profTax:g('splitProfTax')};
+let bPct=g('splitBasic'),hPct=g('splitHRA');
+const st=document.getElementById('splitStatus');
+if(bPct<50){st.textContent='✗ Basic cannot be below 50% (Code on Wages)';st.style.color='#e05';return;}
+if(bPct+hPct>100){st.textContent='✗ Basic + HRA cannot exceed 100%';st.style.color='#e05';return;}
+const s={basicPct:bPct,hraPct:hPct,esiEmpPct:g('splitESIemp'),esiErPct:g('splitESIer'),epfEmpPct:g('splitEPFemp'),epfErPct:g('splitEPFer'),esiThreshold:g('splitESIthreshold'),profTax:g('splitProfTax')};
 localStorage.setItem(SPLIT_KEY,JSON.stringify(s));
-document.getElementById('splitStatus').textContent='◈ Split configuration saved';
-document.getElementById('splitStatus').style.color='var(--gold)';
+st.textContent=`◈ Saved: Basic ${bPct}% + HRA ${hPct}% + Spl ${100-bPct-hPct}% = 100%`;
+st.style.color='var(--gold)';
 showToast('Salary split saved');updateSplitPreview();}
 
 function updateSplitPreview(){
 const g=id=>Number(document.getElementById(id)?.value)||0;
-const ctc=15200,bPct=g('splitBasic')||50,hPct=g('splitHRA')||0;
-const basic=Math.round(ctc*bPct/100),hra=Math.round(basic*hPct/100),spl=ctc-basic-hra;
+let bPct=g('splitBasic')||50,hPct=g('splitHRA')||0;
+// Enforce: Basic min 50%, Basic+HRA max 100%
+if(bPct<50)bPct=50;
+if(bPct+hPct>100)hPct=100-bPct;
+const splPct=Math.max(0,100-bPct-hPct);
+const ctc=15200;
+const basic=Math.round(ctc*bPct/100),hra=Math.round(ctc*hPct/100),spl=ctc-basic-hra;
 const esiEmp=g('splitESIemp')||0.75,epfEmp=g('splitEPFemp')||12,pt=g('splitProfTax')||200;
 const esiThresh=g('splitESIthreshold')||21000;
 const esi=ctc<=esiThresh?Math.round(ctc*esiEmp/100):0;
@@ -1062,17 +1071,20 @@ const epf=Math.round(basic*epfEmp/100);
 const net=ctc-esi-epf-pt;
 const el=document.getElementById('splitPreview');
 if(!el)return;
-el.innerHTML=`Basic: <b>₹${basic.toLocaleString('en-IN')}</b> (${bPct}%) · HRA: <b>₹${hra.toLocaleString('en-IN')}</b> (${hPct}% of Basic) · Spl Allow: <b>₹${spl.toLocaleString('en-IN')}</b> (remainder)<br>ESI: ₹${esi} · EPF: ₹${epf} · Prof Tax: ₹${pt} · <span style="color:var(--gold);font-weight:600">Net: ₹${net.toLocaleString('en-IN')}</span>`;
+const ok=bPct+hPct+splPct===100;
+el.innerHTML=`${ok?'':'<div style="color:#e05;margin-bottom:6px;font-weight:600">⚠ Split must equal 100%</div>'}Basic: <b>₹${basic.toLocaleString('en-IN')}</b> (${bPct}%) + HRA: <b>₹${hra.toLocaleString('en-IN')}</b> (${hPct}%) + Spl Allow: <b>₹${spl.toLocaleString('en-IN')}</b> (${splPct}%) = <b>₹${(basic+hra+spl).toLocaleString('en-IN')}</b> (100%)<br>ESI: ₹${esi} · EPF: ₹${epf} · Prof Tax: ₹${pt} · <span style="color:var(--gold);font-weight:600">Net: ₹${net.toLocaleString('en-IN')}</span>`;
 const splD=document.getElementById('splitSplDisplay');
-if(splD)splD.textContent=`${Math.max(0,100-bPct-Math.round(bPct*hPct/100/ctc*100))}%`;}
+if(splD)splD.textContent=`${splPct}%`;}
 
 // Live preview on input change
 document.addEventListener('input',e=>{if(e.target.id&&e.target.id.startsWith('split'))updateSplitPreview();});
 
 function calcGovtSplit(ctc){
 const s=getSplitConfig();
-const basic=Math.round(ctc*s.basicPct/100);
-const hra=Math.round(basic*s.hraPct/100);
+const bPct=Math.max(50,s.basicPct||50);
+const hPct=Math.min(s.hraPct||0,100-bPct);
+const basic=Math.round(ctc*bPct/100);
+const hra=Math.round(ctc*hPct/100);
 const spl=Math.max(0,ctc-basic-hra);
 const gross=ctc;
 const esiApplicable=gross<=s.esiThreshold;
