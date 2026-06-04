@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Heebee HR — System</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;600&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .55s cubic-bezier(.4,0,.2,1),color .55s cubic-bezier(.4,0,.2,1)}
+body.light{--bg:#f5f5f7;--bg2:#fff;--surface:rgba(255,255,255,0.75);--surface2:rgba(255,255,255,0.55);--border:rgba(255,255,255,0.9);--border2:rgba(0,0,0,0.06);--text:#1d1d1f;--text2:#424245;--text3:#86868b;--shadow:0 4px 24px rgba(0,0,0,0.06);--shadow2:0 8px 40px rgba(0,0,0,0.10);--btn-bg:#1d1d1f;--btn-fg:#fff;--input-bg:rgba(255,255,255,0.8);--input-bdr:rgba(0,0,0,0.1);--noise-op:0.035;--sidebar-bg:rgba(255,255,255,0.82);--gold:#b8860b;--gold2:#f0c040}
+body.dark{--bg:#0a0a0f;--bg2:#111118;--surface:rgba(255,255,255,0.06);--surface2:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.06);--text:#f5f5f7;--text2:#d2d2d7;--text3:#86868b;--shadow:0 4px 24px rgba(0,0,0,0.3);--shadow2:0 8px 40px rgba(0,0,0,0.5);--btn-bg:#f5f5f7;--btn-fg:#0a0a0f;--input-bg:rgba(255,255,255,0.07);--input-bdr:rgba(255,255,255,0.12);--noise-op:0.04;--sidebar-bg:rgba(10,10,15,0.9);--gold:#f0c040;--gold2:#f0c040}
+body{background:var(--bg);color:var(--text)}
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");opacity:var(--noise-op);transition:opacity .55s ease}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbDrift ease-in-out infinite alternate;transition:opacity .6s,background .6s}
+body.light .orb1{width:500px;height:500px;top:-80px;right:-80px;background:radial-gradient(circle,#e8d5b0,transparent 70%);opacity:.5;animation-duration:14s}
+body.light .orb2{width:400px;height:400px;bottom:-60px;left:-60px;background:radial-gradient(circle,#d4c4a0,transparent 70%);opacity:.4;animation-duration:18s;animation-delay:5s}
+body.light .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-gradient(circle,#ede8df,transparent 70%);opacity:.35;animation-duration:22s;animation-delay:10s}
+body.dark .orb1{width:500px;height:500px;top:-80px;right:-80px;background:radial-gradient(circle,#1a2a4a,transparent 70%);opacity:.7;animation-duration:14s}
+body.dark .orb2{width:400px;height:400px;bottom:-60px;left:-60px;background:radial-gradient(circle,#0d1a30,transparent 70%);opacity:.6;animation-duration:18s;animation-delay:5s}
+body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-gradient(circle,#1c1c30,transparent 70%);opacity:.5;animation-duration:22s;animation-delay:10s}
+@keyframes orbDrift{0%{transform:translate(0,0)}100%{transform:translate(28px,18px)}}
+.login-wrap{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow2);padding:48px 40px;width:100%;max-width:400px;text-align:center}
+.login-brand{font-weight:200;font-size:1.6rem;letter-spacing:8px;text-transform:uppercase;color:var(--text);margin-bottom:4px}
+.login-sub{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:40px}
+.login-label{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;text-align:left;margin-bottom:6px}
+.login-input{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;margin-bottom:16px;transition:border-color .2s}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:14px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s}
+.login-btn:hover{opacity:.85;transform:translateY(-1px)}
+.login-err{color:#e05;font-size:.78rem;margin-top:8px;min-height:20px}
+.app-layout{display:flex;min-height:100vh;position:relative;z-index:10}
+.sidebar{width:220px;min-height:100vh;background:var(--sidebar-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-right:1px solid var(--border2);display:flex;flex-direction:column;padding:32px 0;position:fixed;left:0;top:0;bottom:0;z-index:50;transition:background .55s}
+.sidebar-brand{padding:0 24px 32px;border-bottom:1px solid var(--border2)}
+.sidebar-brand-name{font-weight:200;font-size:1.1rem;letter-spacing:6px;text-transform:uppercase;color:var(--text)}
+.sidebar-brand-sub{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.sidebar-nav{flex:1;padding:24px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;transition:background .2s,color .2s;border-radius:0;position:relative;font-size:.85rem;font-weight:400;color:var(--text3)}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface);color:var(--text);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--gold);border-radius:0 2px 2px 0}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-label{font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:2px;text-transform:uppercase}
+.nav-soon{font-family:'Space Mono',monospace;font-size:.4rem;letter-spacing:1px;background:var(--surface2);border:1px solid var(--border2);padding:2px 6px;border-radius:20px;margin-left:auto;color:var(--text3)}
+.sidebar-footer{padding:16px 24px;border-top:1px solid var(--border2)}
+.theme-btn{background:none;border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:border-color .2s,color .2s;width:100%}
+.theme-btn:hover{border-color:var(--gold);color:var(--gold)}
+.logout-btn{background:none;border:none;font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;width:100%;text-align:left;padding:8px 0;transition:color .2s}
+.logout-btn:hover{color:#e05}
+.main{margin-left:220px;flex:1;padding:40px 40px 80px;min-height:100vh}
+.page-header{margin-bottom:32px}
+.page-eyebrow{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.page-title{font-weight:200;font-size:1.8rem;letter-spacing:2px;color:var(--text)}
+.page-rule{height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-top:16px;opacity:.4}
+.tabs-wrap{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:60px;padding:4px;display:inline-flex;gap:4px;margin-bottom:28px}
+.tab-btn{padding:9px 22px;border-radius:60px;border:none;background:transparent;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:background .25s,color .25s}
+.tab-btn.active{background:var(--btn-bg);color:var(--btn-fg)}
+.glass-card{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);transition:background .5s,border-color .5s,box-shadow .3s;padding:28px}
+.glass-card:hover{box-shadow:var(--shadow2)}
+.upload-zone{border:2px dashed var(--border2);border-radius:18px;padding:48px 24px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s;background:var(--surface2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:rgba(184,134,11,0.05)}
+.upload-icon{font-size:2rem;color:var(--gold);margin-bottom:12px}
+.upload-title{font-weight:300;font-size:1rem;color:var(--text);margin-bottom:6px}
+.upload-sub{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.file-input{display:none}
+.scan-progress{text-align:center;padding:40px}
+.scan-spinner{width:48px;height:48px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.popup-card{background:var(--bg2);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,0.3);max-width:700px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .35s cubic-bezier(.4,0,.2,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.popup-header{padding:28px 28px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.popup-close{background:none;border:none;font-size:1.4rem;color:var(--text3);cursor:pointer;padding:4px;transition:color .2s}
+.popup-close:hover{color:var(--text)}
+.popup-body{padding:20px 28px 28px}
+.candidate-name{font-weight:200;font-size:1.6rem;letter-spacing:2px;color:var(--text)}
+.candidate-role{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:4px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.info-item{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:12px 14px}
+.info-label{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.info-val{font-size:.85rem;font-weight:400;color:var(--text)}
+.screening-box{background:linear-gradient(135deg,rgba(184,134,11,0.08),rgba(184,134,11,0.03));border:1px solid rgba(184,134,11,0.2);border-radius:14px;padding:16px 18px;margin-top:16px}
+.screening-title{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.screening-item{font-size:.82rem;font-weight:300;color:var(--text2);padding:4px 0;padding-left:16px;position:relative;line-height:1.5}
+.screening-item::before{content:'◈';position:absolute;left:0;color:var(--gold);font-size:.6rem}
+.popup-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn-primary{background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s;flex:1;min-width:140px}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-ghost{background:none;color:var(--text2);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s;flex:1;min-width:140px}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-whatsapp{background:#25d366;color:#fff;border:none;border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;flex:1;min-width:140px}
+.btn-whatsapp:hover{opacity:.85}
+.btn-danger{background:none;color:#e05;border:1px solid rgba(238,0,85,0.3);border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:background .2s;flex:1;min-width:140px}
+.btn-danger:hover{background:rgba(238,0,85,0.08)}
+.search-bar{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;margin-bottom:16px;transition:border-color .2s}
+.search-bar:focus{border-color:var(--gold)}
+.filter-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-select{background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:10px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:1.5px;color:var(--text2);outline:none;cursor:pointer;transition:border-color .2s}
+.filter-select:focus{border-color:var(--gold)}
+.candidates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.cand-card{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:18px;padding:18px 20px;cursor:pointer;transition:box-shadow .25s,transform .25s}
+.cand-card:hover{box-shadow:var(--shadow2);transform:translateY(-2px)}
+.cand-name{font-weight:600;font-size:.92rem;color:var(--text);margin-bottom:2px}
+.cand-role-tag{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.cand-meta{font-size:.78rem;color:var(--text3);margin-bottom:2px}
+.status-pill{display:inline-block;font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-top:10px}
+.status-applied{background:rgba(59,130,246,0.12);color:#3b82f6}
+.status-shortlisted{background:rgba(245,158,11,0.12);color:#f59e0b}
+.status-hired{background:rgba(16,185,129,0.12);color:#10b981}
+.status-rejected{background:rgba(239,68,68,0.12);color:#ef4444}
+.status-active{background:rgba(16,185,129,0.12);color:#10b981}
+.status-resigned{background:rgba(107,114,128,0.12);color:#6b7280}
+.status-terminated{background:rgba(239,68,68,0.12);color:#ef4444}
+.emp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.emp-row{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;cursor:pointer;transition:box-shadow .25s;display:flex;align-items:center;gap:16px}
+.emp-row:hover{box-shadow:var(--shadow2)}
+.emp-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),rgba(184,134,11,0.3));display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.9rem;color:#fff;flex-shrink:0}
+.emp-info{flex:1}
+.emp-id-tag{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold)}
+.emp-name-main{font-weight:600;font-size:.92rem;color:var(--text)}
+.emp-pos{font-size:.78rem;color:var(--text3)}
+.emp-outlet-tag{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:1.5px;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);padding:3px 8px;border-radius:20px;color:var(--text3)}
+.profile-back{background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;padding:0 0 20px;transition:color .2s;display:flex;align-items:center;gap:6px}
+.profile-back:hover{color:var(--gold)}
+.profile-hero{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;padding:28px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.profile-avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),rgba(184,134,11,0.4));display:flex;align-items:center;justify-content:center;font-weight:200;font-size:1.4rem;color:#fff;flex-shrink:0}
+.profile-name-lg{font-weight:200;font-size:1.5rem;letter-spacing:2px;color:var(--text)}
+.profile-id{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;color:var(--gold)}
+.section-title{font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border2),transparent)}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.detail-item{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px}
+.detail-label{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.detail-val{font-size:.85rem;font-weight:400;color:var(--text)}
+.remun-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.remun-table th{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border2);text-align:left}
+.remun-table td{padding:10px 12px;border-bottom:1px solid var(--border2);color:var(--text2)}
+.remun-table tr:last-child td{border-bottom:none}
+.notes-area{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:var(--text);outline:none;resize:vertical;min-height:80px;transition:border-color .2s}
+.notes-area:focus{border-color:var(--gold)}
+.upload-tabs{display:flex;gap:10px;margin-bottom:24px}
+.upload-tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:border-color .25s,background .25s;text-align:center}
+.upload-tab.active{border-color:var(--gold);background:rgba(184,134,11,0.06)}
+.upload-tab-icon{font-size:1.4rem;color:var(--text3);margin-bottom:8px;transition:color .25s}
+.upload-tab.active .upload-tab-icon{color:var(--gold)}
+.upload-tab-label{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);transition:color .25s}
+.upload-tab.active .upload-tab-label{color:var(--gold)}
+.match-report{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
+.match-good{color:#10b981;font-size:.82rem;margin-bottom:4px}
+.match-bad{color:#ef4444;font-size:.82rem}
+.settings-section{margin-bottom:28px}
+.settings-label{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:8px}
+.settings-input{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Space Mono',monospace;font-size:.7rem;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:10px}
+.settings-input:focus{border-color:var(--gold)}
+.save-btn{background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:12px 28px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.save-btn:hover{opacity:.85}
+.toast{position:fixed;bottom:32px;right:32px;background:var(--btn-bg);color:var(--btn-fg);padding:12px 20px;border-radius:12px;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;z-index:9999;animation:toastIn .3s ease;box-shadow:var(--shadow2)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel{display:none}
+.panel.active{display:block;animation:panelReveal .5s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes panelReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase}
+.hire-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hire-form-field{display:flex;flex-direction:column;gap:6px}
+.hire-form-field label{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.hire-form-field input,.hire-form-field select,.hire-form-field textarea{background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:10px;padding:10px 14px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.hire-form-field input:focus,.hire-form-field select:focus{border-color:var(--gold)}
+.full-width{grid-column:1/-1}
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.summary-card{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:16px;padding:18px;text-align:center}
+.summary-card-value{font-weight:200;font-size:1.6rem;color:var(--text);margin-bottom:4px}
+.summary-card-label{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.month-input{background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:10px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:.52rem;color:var(--text2);outline:none;transition:border-color .2s}
+.month-input:focus{border-color:var(--gold)}
+@media(max-width:768px){
+.sidebar{width:60px;padding:20px 0}
+.sidebar-brand,.nav-label,.nav-soon,.sidebar-footer{display:none}
+.nav-item{padding:16px;justify-content:center}
+.main{margin-left:60px;padding:20px 16px 80px}
+.info-grid,.detail-grid{grid-template-columns:1fr}
+.hire-form{grid-template-columns:1fr}
+.summary-cards{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body class="light">
+<div class="bg-layer"><div class="bg-orb orb1"></div><div class="bg-orb orb2"></div><div class="bg-orb orb3"></div></div>
+<div class="login-wrap" id="loginWrap">
+<div class="login-card">
+<div class="login-brand">Heebee</div>
+<div class="login-sub">HR System</div>
+<label class="login-label">Email</label>
+<input class="login-input" type="email" id="loginEmail" placeholder="hr@heebeecoffee.com" autocomplete="email">
+<label class="login-label">PIN</label>
+<input class="login-input" type="password" id="loginPin" placeholder="••••" maxlength="4" autocomplete="current-password">
+<button class="login-btn" onclick="doLogin()">Enter System</button>
+<div class="login-err" id="loginErr"></div>
+</div>
+</div>
+<div class="app-layout" id="appLayout" style="display:none">
+<aside class="sidebar">
+<div class="sidebar-brand"><div class="sidebar-brand-name">Heebee</div><div class="sidebar-brand-sub">HR System</div></div>
+<nav class="sidebar-nav">
+<div class="nav-item active" onclick="showPanel('onboarding',this)"><span class="nav-icon">◈</span><span class="nav-label">Onboarding</span></div>
+<div class="nav-item" onclick="showPanel('payroll',this)"><span class="nav-icon">◇</span><span class="nav-label">Payroll</span></div>
+<div class="nav-item" onclick="showPanel('employees',this)"><span class="nav-icon">◎</span><span class="nav-label">Employees</span></div>
+<div class="nav-item" onclick="showPanel('reports',this)" style="opacity:.5"><span class="nav-icon">✦</span><span class="nav-label">Reports</span><span class="nav-soon">Soon</span></div>
+<div class="nav-item" onclick="showPanel('settings',this)"><span class="nav-icon">◉</span><span class="nav-label">Settings</span></div>
+</nav>
+<div class="sidebar-footer">
+<button class="theme-btn" onclick="toggleTheme()">◐ Theme</button>
+<button class="logout-btn" onclick="doLogout()">↩ Sign out</button>
+</div>
+</aside>
+<main class="main">
+<!-- ONBOARDING -->
+<div class="panel active" id="panel-onboarding">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Onboarding</div><div class="page-rule"></div></div>
+<div class="tabs-wrap">
+<button class="tab-btn active" onclick="showOTab('scan',this)">◈ Scan Resume</button>
+<button class="tab-btn" onclick="showOTab('directory',this)">◇ Directory</button>
+<button class="tab-btn" onclick="showOTab('empprofiles',this)">◎ Employees</button>
+</div>
+<div id="otab-scan">
+<div class="glass-card" style="max-width:600px">
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('resumeFile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+<div class="upload-icon">◈</div><div class="upload-title">Drop resume here</div><div class="upload-sub" style="margin-top:6px">PDF · JPG · PNG · tap to browse</div>
+</div>
+<input type="file" id="resumeFile" class="file-input" accept=".pdf,.jpg,.jpeg,.png" onchange="handleResumeFile(this.files[0])">
+<div id="scanState" style="display:none"></div>
+</div>
+</div>
+<div id="otab-directory" style="display:none">
+<input class="search-bar" type="text" placeholder="Search by name, role, phone..." id="candSearch" oninput="renderDirectory()">
+<div class="filter-row">
+<select class="filter-select" id="fStatus" onchange="renderDirectory()"><option value="">All Status</option><option value="Applied">Applied</option><option value="Shortlisted">Shortlisted</option><option value="Hired">Hired</option><option value="Rejected">Rejected</option></select>
+<select class="filter-select" id="fOutlet" onchange="renderDirectory()"><option value="">All Outlets</option><option value="GHB">GHB</option><option value="SHB">SHB</option><option value="JLD">JLD</option></select>
+</div>
+<div id="candidatesGrid" class="candidates-grid"></div>
+</div>
+<div id="otab-empprofiles" style="display:none">
+<div id="empListView">
+<div class="filter-row">
+<select class="filter-select" id="empOutletFilter" onchange="renderEmployeeList()"><option value="">All Outlets</option><option value="GHB">GHB</option><option value="SHB">SHB</option><option value="JLD">JLD</option></select>
+<select class="filter-select" id="empStatusFilter" onchange="renderEmployeeList()"><option value="">All Status</option><option value="Active">Active</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option></select>
+</div>
+<div id="employeeListEl" class="emp-list"></div>
+</div>
+<div id="empDetailView" style="display:none"></div>
+</div>
+</div>
+<!-- PAYROLL -->
+<div class="panel" id="panel-payroll">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Payroll Uploads</div><div class="page-rule"></div></div>
+<div class="filter-row" style="margin-bottom:20px"><label class="settings-label" style="margin:0;padding-top:6px">Month:</label><input type="month" class="month-input" id="payrollMonth"></div>
+<div class="upload-tabs">
+<div class="upload-tab active" id="ptab-bank-btn" onclick="showPTab('bank')"><div class="upload-tab-icon">◇</div><div class="upload-tab-label">Bank Transfer Sheet</div></div>
+<div class="upload-tab" id="ptab-govt-btn" onclick="showPTab('govt')"><div class="upload-tab-icon">◈</div><div class="upload-tab-label">Govt Salary Sheet</div></div>
+</div>
+<div id="ptab-bank">
+<div class="glass-card" style="max-width:600px">
+<div class="section-title">Bank Transfer Sheet</div>
+<p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload the HR salary Excel. Columns: Sr.No · Name · Father · Branch · Designation · DOJ · Basic · HRA · Salary · Incentives · Advance · ESI · EPF · Net Salary</p>
+<div class="upload-zone" onclick="document.getElementById('bankFile').click()"><div class="upload-icon">◇</div><div class="upload-title">Upload Salary Excel</div><div class="upload-sub" style="margin-top:6px">.xlsx · .xls</div></div>
+<input type="file" id="bankFile" class="file-input" accept=".xlsx,.xls" onchange="handleBankUpload(this.files[0])">
+<div id="bankReport"></div>
+</div>
+</div>
+<div id="ptab-govt" style="display:none">
+<div class="glass-card" style="max-width:600px">
+<div class="section-title">Govt Salary Sheet</div>
+<p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload the labour-law compliant salary sheet Excel with full breakup: Basic · HRA · DA · Special Allowance · Gross · Deductions · Net Pay</p>
+<div class="upload-zone" onclick="document.getElementById('govtFile').click()"><div class="upload-icon">◈</div><div class="upload-title">Upload Govt Salary Sheet</div><div class="upload-sub" style="margin-top:6px">.xlsx · .xls</div></div>
+<input type="file" id="govtFile" class="file-input" accept=".xlsx,.xls" onchange="handleGovtUpload(this.files[0])">
+<div id="govtReport"></div>
+</div>
+</div>
+</div>
+<!-- EMPLOYEES -->
+<div class="panel" id="panel-employees">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">All Employees</div><div class="page-rule"></div></div>
+<div id="outletSummary" class="summary-cards"></div>
+<div id="allEmpView">
+<div class="filter-row">
+<input class="search-bar" type="text" placeholder="Search employees..." id="empSearch" oninput="renderAllEmployees()" style="flex:1;margin-bottom:0">
+<select class="filter-select" id="allEmpOutlet" onchange="renderAllEmployees()"><option value="">All Outlets</option><option value="GHB">GHB</option><option value="SHB">SHB</option><option value="JLD">JLD</option></select>
+<select class="filter-select" id="allEmpDept" onchange="renderAllEmployees()"><option value="">All Depts</option><option value="D00">D00 — Ops</option><option value="D01">D01 — Office</option><option value="D02">D02 — Directors</option><option value="D03">D03 — Jalandhar</option></select>
+<select class="filter-select" id="allEmpStatus" onchange="renderAllEmployees()"><option value="">All Status</option><option value="Active">Active</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option></select>
+</div>
+<div id="allEmpList" class="emp-list" style="margin-top:16px"></div>
+</div>
+<div id="allEmpDetail" style="display:none"></div>
+</div>
+<!-- REPORTS -->
+<div class="panel" id="panel-reports">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Reports</div><div class="page-rule"></div></div>
+<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">Coming in Phase 2</div></div>
+</div>
+<!-- SETTINGS -->
+<div class="panel" id="panel-settings">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Settings</div><div class="page-rule"></div></div>
+<div class="glass-card" style="max-width:560px">
+<div class="settings-section">
+<div class="section-title">API Keys</div>
+<label class="settings-label">Anthropic API Key</label>
+<input class="settings-input" type="password" id="setAnthropicKey" placeholder="sk-ant-...">
+<label class="settings-label">Firebase Config (JSON)</label>
+<textarea class="settings-input" id="setFirebaseConfig" rows="6" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+<button class="save-btn" onclick="saveSettings()">Save & Connect</button>
+<div id="settingsStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+</div>
+<div class="settings-section">
+<div class="section-title">Seed Data</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:12px">Insert all 67 employees from April 2026 salary sheets into Firebase.</p>
+<button class="save-btn" onclick="seedApril2026()">Seed April 2026 Employees</button>
+<div id="seedStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+</div>
+<div class="settings-section">
+<div class="section-title">Bulk Import from Salary Sheet</div>
+<div class="upload-zone" onclick="document.getElementById('importFile').click()" style="padding:24px 16px"><div class="upload-icon" style="font-size:1.4rem">◎</div><div class="upload-title" style="font-size:.9rem">Upload Salary Sheet to Import</div><div class="upload-sub">.xlsx</div></div>
+<input type="file" id="importFile" class="file-input" accept=".xlsx,.xls" onchange="handleBulkImport(this.files[0])">
+<div id="importReport"></div>
+</div>
+<div class="settings-section">
+<div class="section-title">Access</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300">HR: hr@heebeecoffee.com · 1234<br>Owner: gavish@heebeecoffee.com · 0000<br>Owner: nitigya@heebeecoffee.com · 1111</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<div class="overlay" id="candidateOverlay" style="display:none" onclick="if(event.target===this)closePopup()"><div class="popup-card" id="candidatePopup"></div></div>
+<div class="overlay" id="hireOverlay" style="display:none" onclick="if(event.target===this)closeHireModal()"><div class="popup-card" id="hireModal" style="max-width:700px"></div></div>
+<div class="overlay" id="editOverlay" style="display:none" onclick="if(event.target===this)closeEditModal()"><div class="popup-card" id="editModal" style="max-width:700px"></div></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getDatabase,ref,set,get,push,update,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+window._fbApp=null;window._db=null;window._fbMod={initializeApp,getDatabase,ref,set,get,push,update,onValue};
+window.initFirebase=function(config){try{if(window._fbApp)return true;window._fbApp=initializeApp(config);window._db=getDatabase(window._fbApp);return true;}catch(e){console.error('Firebase init:',e);return false;}};
+window.dbSet=async(p,d)=>{if(!window._db)return false;try{await set(ref(window._db,p),d);return true;}catch(e){console.error(e);return false;}};
+window.dbGet=async(p)=>{if(!window._db)return null;try{const s=await get(ref(window._db,p));return s.exists()?s.val():null;}catch(e){console.error(e);return null;}};
+window.dbPush=async(p,d)=>{if(!window._db)return null;try{const r=await push(ref(window._db,p),d);return r.key;}catch(e){console.error(e);return null;}};
+window.dbUpdate=async(p,d)=>{if(!window._db)return false;try{await update(ref(window._db,p),d);return true;}catch(e){console.error(e);return false;}};
+</script>
+
+<script>
+const USERS={'hr@heebeecoffee.com':'1234','gavish@heebeecoffee.com':'0000','nitigya@heebeecoffee.com':'1111'};
+function doLogin(){const e=document.getElementById('loginEmail').value.trim().toLowerCase(),p=document.getElementById('loginPin').value.trim();if(USERS[e]&&USERS[e]===p){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}else{document.getElementById('loginErr').textContent='Invalid credentials';}}
+document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
+function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
+function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();}
+function showOTab(n,el){['scan','directory','empprofiles'].forEach(t=>{document.getElementById('otab-'+t).style.display='none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('otab-'+n).style.display='block';if(el)el.classList.add('active');if(n==='directory')renderDirectory();if(n==='empprofiles')renderEmployeeList();}
+function showPTab(n){['bank','govt'].forEach(t=>{document.getElementById('ptab-'+t).style.display='none';document.getElementById('ptab-'+t+'-btn').classList.remove('active');});document.getElementById('ptab-'+n).style.display='block';document.getElementById('ptab-'+n+'-btn').classList.add('active');}
+function showToast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
+function loadSettings(){const k=localStorage.getItem('hb_hr_anthropic'),f=localStorage.getItem('hb_hr_firebase');if(k)document.getElementById('setAnthropicKey').value=k;if(f){document.getElementById('setFirebaseConfig').value=f;try{window.initFirebase(JSON.parse(f));}catch(e){}}
+const now=new Date();document.getElementById('payrollMonth').value=now.toISOString().slice(0,7);}
+function saveSettings(){const k=document.getElementById('setAnthropicKey').value.trim(),f=document.getElementById('setFirebaseConfig').value.trim(),st=document.getElementById('settingsStatus');if(k)localStorage.setItem('hb_hr_anthropic',k);if(f){try{const c=JSON.parse(f);localStorage.setItem('hb_hr_firebase',f);const ok=window.initFirebase(c);st.textContent=ok?'◈ Firebase connected · API key saved':'✗ Firebase error';st.style.color=ok?'var(--gold)':'#e05';}catch(e){st.textContent='✗ Invalid JSON';st.style.color='#e05';}}else{st.textContent='◈ API key saved';st.style.color='var(--gold)';}showToast('Settings saved');}
+
+// ─── RESUME PARSING ─────────────────────────────────
+function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('drag');if(e.dataTransfer.files[0])handleResumeFile(e.dataTransfer.files[0]);}
+async function handleResumeFile(file){if(!file)return;const apiKey=localStorage.getItem('hb_hr_anthropic');if(!apiKey){showToast('Add Anthropic API key in Settings');showPanel('settings',document.querySelectorAll('.nav-item')[4]);return;}
+const ss=document.getElementById('scanState');ss.style.display='block';ss.innerHTML='<div class="scan-progress"><div class="scan-spinner"></div><div class="scan-text">Scanning resume with AI...</div></div>';
+try{const b64=await fileToBase64(file);const isImg=file.type.startsWith('image/'),isPdf=file.type==='application/pdf';let mc=[];
+if(isPdf)mc=[{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},{type:'text',text:RESUME_PROMPT}];
+else if(isImg)mc=[{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:RESUME_PROMPT}];
+const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:mc}]})});
+const data=await res.json();if(data.error)throw new Error(data.error.message);
+const txt=data.content.map(c=>c.text||'').join('');let parsed;try{parsed=JSON.parse(txt.replace(/```json|```/g,''));}catch(e){throw new Error('Could not parse AI response');}
+ss.style.display='none';showCandidatePopup(parsed,null);
+}catch(err){ss.innerHTML=`<div style="padding:20px;text-align:center;color:#e05;font-size:.82rem">Error: ${err.message}</div>`;}}
+
+const RESUME_PROMPT=`You are an HR screening AI for Heebee Coffee Pvt. Ltd., a specialty café chain in Punjab, India.
+Analyze this resume and respond ONLY with a valid JSON object — no markdown, no preamble, no explanation.
+{"name":"Full name","phone":"Mobile number — digits only, include 91 prefix if Indian mobile","email":"Email address","address":"City and state if mentioned","current_role":"Current or most recent job title","experience_years":0,"skills":["skill1","skill2"],"education":"Highest qualification and institution","past_employers":["Employer 1 — Role","Employer 2 — Role"],"languages":["Hindi","English","Punjabi"],"dob":"DD/MM/YYYY if mentioned, else empty string","screening":{"hire_recommendation":"Should Hire | Maybe | Pass","reasons":["Reason 1","Reason 2","Reason 3"],"suggested_role":"Best-fit role at a café","salary_expectation":"Estimate in INR per month","red_flags":["concern if any, else empty string"]}}`;
+
+function fileToBase64(f){return new Promise((r,j)=>{const R=new FileReader();R.onload=()=>r(R.result.split(',')[1]);R.onerror=()=>j(new Error('File read failed'));R.readAsDataURL(f);});}
+
+// ─── CANDIDATE POPUP ────────────────────────────────
+let _currentCandidate=null;
+function showCandidatePopup(data,existingId){
+_currentCandidate={...data,_existingId:existingId};const s=data.screening||{};
+const rc=s.hire_recommendation==='Should Hire'?'#10b981':s.hire_recommendation==='Maybe'?'#f59e0b':'#ef4444';
+const wa=(data.phone||'').replace(/\D/g,'');const waLink=wa?`https://wa.me/${wa.startsWith('91')?'':'91'}${wa}?text=Hello%20${encodeURIComponent(data.name||'')}%2C%20this%20is%20Heebee%20Coffee%20HR.%20Kindly%20share%20a%20recent%20passport-size%20photo%20for%20our%20records.%20Thank%20you.`:'';
+document.getElementById('candidatePopup').innerHTML=`
+<div class="popup-header"><div><div class="candidate-name">${data.name||'Unknown'}</div><div class="candidate-role">${data.current_role||'Role not specified'}</div></div><button class="popup-close" onclick="closePopup()">✕</button></div>
+<div class="popup-body">
+<div class="info-grid">
+<div class="info-item"><div class="info-label">Phone</div><div class="info-val">${data.phone||'—'}</div></div>
+<div class="info-item"><div class="info-label">Email</div><div class="info-val">${data.email||'—'}</div></div>
+<div class="info-item"><div class="info-label">Experience</div><div class="info-val">${data.experience_years||'—'} years</div></div>
+<div class="info-item"><div class="info-label">Location</div><div class="info-val">${data.address||'—'}</div></div>
+<div class="info-item"><div class="info-label">Education</div><div class="info-val">${data.education||'—'}</div></div>
+<div class="info-item"><div class="info-label">DOB</div><div class="info-val">${data.dob||'—'}</div></div>
+</div>
+${data.skills&&data.skills.length?`<div style="margin-top:12px"><div class="info-label" style="margin-bottom:8px">Skills</div><div style="display:flex;flex-wrap:wrap;gap:6px">${data.skills.map(s=>`<span style="background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:.75rem;color:var(--text2)">${s}</span>`).join('')}</div></div>`:''}
+${data.past_employers&&data.past_employers.length?`<div style="margin-top:12px"><div class="info-label" style="margin-bottom:6px">Past Employers</div><div style="font-size:.82rem;color:var(--text2)">${data.past_employers.join(' · ')}</div></div>`:''}
+<div class="screening-box">
+<div class="screening-title">◈ AI Screening — <span style="color:${rc}">${s.hire_recommendation||'—'}</span></div>
+<div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:var(--text3);margin-bottom:4px">SUGGESTED ROLE: ${s.suggested_role||'—'}</div>
+<div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:var(--text3);margin-bottom:8px">SALARY ESTIMATE: ${s.salary_expectation||'—'}</div>
+${(s.reasons||[]).map(r=>`<div class="screening-item">${r}</div>`).join('')}
+${s.red_flags&&s.red_flags[0]?`<div style="margin-top:8px;font-size:.75rem;color:#ef4444;font-weight:300">⚠ ${s.red_flags.join(' · ')}</div>`:''}
+</div>
+<div class="popup-actions">
+${waLink?`<a href="${waLink}" target="_blank" style="text-decoration:none;flex:1;min-width:140px"><button class="btn-whatsapp" style="width:100%">◎ WhatsApp</button></a>`:''}
+${!existingId?`<button class="btn-primary" onclick="saveToDirectory()">◈ Save to Directory</button>`:`<button class="btn-primary" onclick="openHireModal('${existingId}')">◎ Mark as Hired</button>`}
+<button class="btn-ghost" onclick="closePopup()">Discard</button>
+</div></div>`;
+document.getElementById('candidateOverlay').style.display='flex';}
+function closePopup(){document.getElementById('candidateOverlay').style.display='none';}
+
+async function saveToDirectory(){if(!_currentCandidate)return;const c={..._currentCandidate,status:'Applied',outlet:'',date_added:new Date().toISOString()};delete c._existingId;
+const id=await window.dbPush('candidates',c);if(id){showToast('Candidate saved');closePopup();renderDirectory();document.querySelectorAll('.tab-btn')[1].click();}else showToast('Firebase not connected');}
+
+// ─── DIRECTORY ──────────────────────────────────────
+let _candidates={};
+async function renderDirectory(){_candidates=await window.dbGet('candidates')||{};const grid=document.getElementById('candidatesGrid');
+const q=(document.getElementById('candSearch')||{}).value?.toLowerCase()||'';const fSt=(document.getElementById('fStatus')||{}).value||'';const fOu=(document.getElementById('fOutlet')||{}).value||'';
+let list=Object.entries(_candidates).map(([id,c])=>({id,...c}));
+if(q)list=list.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.current_role||'').toLowerCase().includes(q));
+if(fSt)list=list.filter(c=>c.status===fSt);if(fOu)list=list.filter(c=>c.outlet===fOu);
+list.sort((a,b)=>(b.date_added||'').localeCompare(a.date_added||''));
+if(!list.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◇</div><div class="empty-text">No candidates yet</div></div>';return;}
+grid.innerHTML=list.map(c=>`<div class="cand-card" onclick="openCandidateDetail('${c.id}')">
+<div class="cand-name">${c.name||'Unknown'}</div><div class="cand-role-tag">${c.current_role||'—'}</div>
+<div class="cand-meta">◎ ${c.phone||'—'}</div><div class="cand-meta">◇ ${c.email||'—'}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+<span class="status-pill status-${(c.status||'applied').toLowerCase()}">${c.status||'Applied'}</span>
+<select class="filter-select" style="padding:3px 8px;font-size:.4rem" onchange="event.stopPropagation();updateCandStatus('${c.id}',this.value)" onclick="event.stopPropagation()">
+<option ${c.status==='Applied'?'selected':''}>Applied</option><option ${c.status==='Shortlisted'?'selected':''}>Shortlisted</option><option ${c.status==='Hired'?'selected':''}>Hired</option><option ${c.status==='Rejected'?'selected':''}>Rejected</option></select>
+</div></div>`).join('');}
+function openCandidateDetail(id){const c=_candidates[id];if(c)showCandidatePopup(c,id);}
+async function updateCandStatus(id,st){await window.dbUpdate('candidates/'+id,{status:st});showToast('Status → '+st);renderDirectory();}
+
+// ─── EMPLOYEE LIST ──────────────────────────────────
+let _employees={};
+async function renderEmployeeList(){_employees=await window.dbGet('employees')||{};const el=document.getElementById('employeeListEl');
+const fOu=(document.getElementById('empOutletFilter')||{}).value||'';const fSt=(document.getElementById('empStatusFilter')||{}).value||'';
+let list=Object.entries(_employees).map(([id,e])=>({id,...e}));if(fOu)list=list.filter(e=>e.outlet===fOu);if(fSt)list=list.filter(e=>e.status===fSt);
+list.sort((a,b)=>(a.emp_id||'').localeCompare(b.emp_id||''));
+if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No employees yet — hire from directory or seed data</div></div>';return;}
+el.innerHTML=list.map(e=>empRowHTML(e,'onboarding')).join('');}
+
+async function renderAllEmployees(){_employees=await window.dbGet('employees')||{};const el=document.getElementById('allEmpList');
+const q=(document.getElementById('empSearch')||{}).value?.toLowerCase()||'';const fOu=(document.getElementById('allEmpOutlet')||{}).value||'';
+const fDe=(document.getElementById('allEmpDept')||{}).value||'';const fSt=(document.getElementById('allEmpStatus')||{}).value||'';
+let list=Object.entries(_employees).map(([id,e])=>({id,...e}));
+if(q)list=list.filter(e=>(e.name||'').toLowerCase().includes(q)||(e.emp_id||'').toLowerCase().includes(q)||(e.position||'').toLowerCase().includes(q));
+if(fOu)list=list.filter(e=>e.outlet===fOu);if(fDe)list=list.filter(e=>e.department===fDe);if(fSt)list=list.filter(e=>e.status===fSt);
+list.sort((a,b)=>(a.emp_id||'').localeCompare(b.emp_id||''));
+// Summary cards
+const all=Object.values(_employees).filter(e=>e.status==='Active');
+const ghb=all.filter(e=>e.outlet==='GHB').length,shb=all.filter(e=>e.outlet==='SHB').length,jld=all.filter(e=>e.outlet==='JLD').length;
+document.getElementById('outletSummary').innerHTML=`
+<div class="summary-card"><div class="summary-card-value">${all.length}</div><div class="summary-card-label">Total Active</div></div>
+<div class="summary-card"><div class="summary-card-value">${ghb}</div><div class="summary-card-label">GHB — Ludhiana</div></div>
+<div class="summary-card"><div class="summary-card-value">${shb}</div><div class="summary-card-label">SHB — Ghumar Mandi</div></div>
+<div class="summary-card"><div class="summary-card-value">${jld}</div><div class="summary-card-label">JLD — Jalandhar</div></div>`;
+if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No employees found</div></div>';return;}
+el.innerHTML=list.map(e=>empRowHTML(e,'all')).join('');}
+
+function empRowHTML(e,panel){return`<div class="emp-row" onclick="openEmpDetail('${e.id}','${panel}')">
+<div class="emp-avatar">${(e.name||'?').charAt(0).toUpperCase()}</div>
+<div class="emp-info"><div class="emp-id-tag">${e.emp_id||'—'}</div><div class="emp-name-main">${e.name||'—'}</div><div class="emp-pos">${e.position||'—'}</div></div>
+<span class="emp-outlet-tag">${e.outlet||'—'}</span>
+<span class="status-pill status-${(e.status||'active').toLowerCase()}">${e.status||'Active'}</span></div>`;}
+
+// ─── HIRE MODAL ─────────────────────────────────────
+let _hiringCandId=null;
+function openHireModal(cid){_hiringCandId=cid;const c=_candidates[cid]||_currentCandidate||{};
+document.getElementById('hireModal').innerHTML=`
+<div class="popup-header"><div><div class="candidate-name">Hire: ${c.name||'Candidate'}</div><div class="candidate-role">Create Employee Profile</div></div><button class="popup-close" onclick="closeHireModal()">✕</button></div>
+<div class="popup-body"><div class="hire-form">
+<div class="hire-form-field"><label>Outlet</label><select id="h_outlet"><option value="GHB">GHB — Sarabha Nagar</option><option value="SHB">SHB — Ghumar Mandi</option><option value="JLD">JLD — Jalandhar</option></select></div>
+<div class="hire-form-field"><label>Department</label><select id="h_dept"><option value="D00">D00 — Ops</option><option value="D01">D01 — Office</option><option value="D03">D03 — Jalandhar</option></select></div>
+<div class="hire-form-field"><label>Position</label><input id="h_position" value="${c.screening?.suggested_role||c.current_role||''}"></div>
+<div class="hire-form-field"><label>Joining Date</label><input id="h_joining" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+<div class="hire-form-field"><label>CTC / Month (₹)</label><input id="h_ctc" type="number" placeholder="18000"></div>
+<div class="hire-form-field"><label>Basic (₹)</label><input id="h_basic" type="number" placeholder="10000"></div>
+<div class="hire-form-field"><label>HRA (₹)</label><input id="h_hra" type="number" placeholder="4000"></div>
+<div class="hire-form-field"><label>Father Name</label><input id="h_father" placeholder="Father/Guardian"></div>
+<div class="hire-form-field"><label>Aadhaar</label><input id="h_aadhaar" maxlength="12" placeholder="XXXXXXXXXXXX"></div>
+<div class="hire-form-field"><label>PAN</label><input id="h_pan" maxlength="10" placeholder="ABCDE1234F"></div>
+<div class="hire-form-field"><label>Account No.</label><input id="h_account"></div>
+<div class="hire-form-field"><label>IFSC</label><input id="h_ifsc"></div>
+<div class="hire-form-field"><label>Bank Name</label><input id="h_bank"></div>
+<div class="hire-form-field"><label>Phone</label><input id="h_phone" value="${c.phone||''}"></div>
+<div class="hire-form-field full-width"><label>Notes</label><input id="h_notes" placeholder="Onboarding notes..."></div>
+</div><div class="popup-actions" style="margin-top:20px">
+<button class="btn-primary" onclick="confirmHire()">◈ Confirm & Create Employee</button>
+<button class="btn-ghost" onclick="closeHireModal()">Cancel</button></div></div>`;
+closePopup();document.getElementById('hireOverlay').style.display='flex';}
+function closeHireModal(){document.getElementById('hireOverlay').style.display='none';}
+
+async function confirmHire(){const outlet=$('h_outlet'),pos=$('h_position'),join=$('h_joining');if(!outlet||!pos||!join){showToast('Required: Outlet, Position, Joining Date');return;}
+const c=_candidates[_hiringCandId]||_currentCandidate||{};const nid=await getNextEmpId(outlet);
+const emp={emp_id:nid,name:c.name||'',phone:$('h_phone'),email:c.email||'',address:c.address||'',father_name:$('h_father'),
+outlet,department:$('h_dept'),position:pos,joining_date:join,last_working_day:'',status:'Active',
+ctc:$('h_ctc'),basic:$('h_basic'),hra:$('h_hra'),conv:'',spl_allowance:'',gross_rate:'',
+aadhaar:$('h_aadhaar'),pan:$('h_pan'),account_no:$('h_account'),ifsc:$('h_ifsc'),bank_name:$('h_bank'),
+pf_no:'',esi_no:'',uan_no:'',skills:c.skills||[],experience_years:c.experience_years||'',education:c.education||'',past_employers:c.past_employers||[],
+notes:[{text:$('h_notes')||'Employee onboarded.',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()};
+const key=nid.replace(/[^a-zA-Z0-9]/g,'_');const ok=await window.dbSet('employees/'+key,emp);
+if(ok){if(_hiringCandId)await window.dbUpdate('candidates/'+_hiringCandId,{status:'Hired'});closeHireModal();showToast(nid+' created');renderDirectory();renderEmployeeList();renderAllEmployees();}
+else showToast('Firebase not connected');}
+function $(id){return document.getElementById(id)?.value?.trim()||'';}
+async function getNextEmpId(outlet){const conf=await window.dbGet('config')||{};const k='last_id_'+outlet;const last=conf[k]||0;const next=last+1;await window.dbSet('config/'+k,next);return`HB-${outlet}-${String(next).padStart(3,'0')}`;}
+
+// ─── EMPLOYEE DETAIL ────────────────────────────────
+let _detailPanel='';
+async function openEmpDetail(empKey,panel){_detailPanel=panel;_employees=await window.dbGet('employees')||{};const e=_employees[empKey];if(!e)return;
+const init=(e.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const rem=e.remuneration_log||{};const remRows=Object.entries(rem).sort((a,b)=>b[0].localeCompare(a[0])).map(([m,d])=>`<tr>
+<td>${m}</td><td>₹${N(d.basic_amt||d.basic||0)}</td><td>₹${N(d.hra_amt||d.hra||0)}</td>
+<td>₹${N(d.ot_amt||d.incentives||0)}</td><td>₹${N(d.gross_amt||d.gross||0)}</td>
+<td>₹${N((d.esi_employee||0)+(d.epf_employee||0)+(d.advance_deduction||d.advance||0)+(d.prof_tax||0))}</td>
+<td style="font-weight:600">₹${N(d.net_pay||0)}</td>
+<td><button onclick="generateSlip('${empKey}','${m}')" style="background:none;border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:1px;color:var(--text3);cursor:pointer">PDF</button></td></tr>`).join('');
+const wa=(e.phone||'').replace(/\D/g,'');
+const html=`
+<button class="profile-back" onclick="backToList('${panel}')">← Back</button>
+<div class="profile-hero">
+<div class="profile-avatar-lg">${init}</div>
+<div><div class="profile-id">${e.emp_id||'—'}</div><div class="profile-name-lg">${e.name||'—'}</div>
+<div style="font-family:Space Mono,monospace;font-size:.5rem;letter-spacing:2px;color:var(--text3);margin-top:4px">${e.position||'—'} · ${e.outlet||'—'} · ${e.department||'—'}</div>
+<span class="status-pill status-${(e.status||'active').toLowerCase()}" style="margin-top:8px;display:inline-block">${e.status||'Active'}</span></div>
+<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+${wa?`<a href="https://wa.me/${wa.startsWith('91')?'':'91'}${wa}" target="_blank"><button class="btn-whatsapp" style="padding:8px 14px;font-size:.7rem">WhatsApp</button></a>`:''}
+<button class="btn-ghost" style="padding:8px 14px;font-size:.7rem" onclick="openEditModal('${empKey}')">◈ Edit</button>
+<button class="btn-ghost" style="padding:8px 14px;font-size:.7rem" onclick="cycleEmpStatus('${empKey}')">Status ↻</button>
+</div></div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Contact & Employment</div><div class="detail-grid">
+${dv('Phone',e.phone)}${dv('Email',e.email)}${dv('Address',e.address)}${dv('Father',e.father_name)}
+${dv('Joining',e.joining_date)}${dv('Last Working Day',e.last_working_day||'Active')}${dv('DOB',e.dob)}${dv('Department',e.department)}
+</div></div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Salary Structure</div><div class="detail-grid">
+${dv('CTC / Month','₹'+N(e.ctc))}${dv('Basic','₹'+N(e.basic))}${dv('HRA','₹'+N(e.hra))}${dv('Conv','₹'+N(e.conv))}${dv('Spl Allowance','₹'+N(e.spl_allowance))}${dv('Gross Rate','₹'+N(e.gross_rate))}
+</div></div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">KYC & Banking</div><div class="detail-grid">
+${dv('Aadhaar',e.aadhaar?e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3'):'')}${dv('PAN',e.pan)}${dv('Bank',e.bank_name)}${dv('Account',e.account_no)}${dv('IFSC',e.ifsc)}${dv('PF No',e.pf_no)}${dv('ESI No',e.esi_no)}${dv('UAN',e.uan_no)}
+</div></div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Remuneration History</div>
+${remRows?`<div style="overflow-x:auto"><table class="remun-table"><thead><tr><th>Month</th><th>Basic</th><th>HRA</th><th>OT</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Slip</th></tr></thead><tbody>${remRows}</tbody></table></div>`:'<div style="font-size:.82rem;color:var(--text3);padding:8px 0">No salary records yet.</div>'}
+</div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">HR Notes</div>
+${(e.notes||[]).map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border2)"><div style="font-size:.78rem;color:var(--text2)">${n.text}</div><div style="font-family:Space Mono,monospace;font-size:.4rem;color:var(--text3);margin-top:4px">${new Date(n.ts).toLocaleDateString('en-IN')}</div></div>`).join('')}
+<div style="margin-top:12px;display:flex;gap:8px"><textarea class="notes-area" id="newNote_${empKey}" placeholder="Add a note..." rows="2" style="flex:1"></textarea>
+<button class="btn-primary" style="width:auto;padding:10px 16px;align-self:flex-end" onclick="addNote('${empKey}')">Add</button></div></div>`;
+if(panel==='onboarding'){$el('empListView').style.display='none';$el('empDetailView').style.display='block';$el('empDetailView').innerHTML=html;}
+else{$el('allEmpView').style.display='none';$el('allEmpDetail').style.display='block';$el('allEmpDetail').innerHTML=html;}}
+function $el(id){return document.getElementById(id);}
+function dv(l,v){return`<div class="detail-item"><div class="detail-label">${l}</div><div class="detail-val">${v||'—'}</div></div>`;}
+function N(v){return Number(v||0).toLocaleString('en-IN');}
+function backToList(p){if(p==='onboarding'){$el('empDetailView').style.display='none';$el('empListView').style.display='block';renderEmployeeList();}else{$el('allEmpDetail').style.display='none';$el('allEmpView').style.display='block';renderAllEmployees();}}
+
+async function addNote(ek){const ta=document.getElementById('newNote_'+ek);const txt=ta.value.trim();if(!txt)return;const e=_employees[ek];
+const notes=[...(e.notes||[]),{text:txt,ts:new Date().toISOString()}];await window.dbUpdate('employees/'+ek,{notes});showToast('Note added');openEmpDetail(ek,_detailPanel);}
+async function cycleEmpStatus(ek){const e=_employees[ek];const sts=['Active','Resigned','Terminated'];const cur=e.status||'Active';const next=sts[(sts.indexOf(cur)+1)%sts.length];
+await window.dbUpdate('employees/'+ek,{status:next,last_working_day:next!=='Active'?new Date().toISOString().slice(0,10):''});showToast('Status → '+next);openEmpDetail(ek,_detailPanel);}
+
+// ─── EDIT PROFILE ───────────────────────────────────
+function openEditModal(ek){const e=_employees[ek];if(!e)return;
+const fields=[['name','Name'],['phone','Phone'],['email','Email'],['address','Address'],['father_name','Father Name'],['dob','DOB'],
+['outlet','Outlet'],['department','Department'],['position','Position'],['joining_date','Joining Date'],
+['ctc','CTC'],['basic','Basic'],['hra','HRA'],['conv','Conv'],['spl_allowance','Spl Allowance'],['gross_rate','Gross Rate'],
+['aadhaar','Aadhaar'],['pan','PAN'],['account_no','Account No'],['ifsc','IFSC'],['bank_name','Bank Name'],
+['pf_no','PF No'],['esi_no','ESI No'],['uan_no','UAN']];
+document.getElementById('editModal').innerHTML=`
+<div class="popup-header"><div><div class="candidate-name">Edit: ${e.name}</div><div class="candidate-role">${e.emp_id}</div></div><button class="popup-close" onclick="closeEditModal()">✕</button></div>
+<div class="popup-body"><div class="hire-form">${fields.map(([k,l])=>`<div class="hire-form-field"><label>${l}</label><input id="edit_${k}" value="${e[k]||''}"></div>`).join('')}
+</div><div class="popup-actions" style="margin-top:20px"><button class="btn-primary" onclick="saveEdit('${ek}')">◈ Save Changes</button><button class="btn-ghost" onclick="closeEditModal()">Cancel</button></div></div>`;
+document.getElementById('editOverlay').style.display='flex';}
+function closeEditModal(){document.getElementById('editOverlay').style.display='none';}
+async function saveEdit(ek){const fields=['name','phone','email','address','father_name','dob','outlet','department','position','joining_date','ctc','basic','hra','conv','spl_allowance','gross_rate','aadhaar','pan','account_no','ifsc','bank_name','pf_no','esi_no','uan_no'];
+const upd={};fields.forEach(f=>{upd[f]=document.getElementById('edit_'+f)?.value?.trim()||'';});
+await window.dbUpdate('employees/'+ek,upd);closeEditModal();showToast('Profile updated');openEmpDetail(ek,_detailPanel);}
+
+// ─── PAYROLL UPLOADS ────────────────────────────────
+function normName(s){return(s||'').toString().trim().toUpperCase().replace(/\s+/g,' ');}
+function nameScore(a,b){a=normName(a);b=normName(b);if(a===b)return 3;const aw=a.split(' '),bw=b.split(' ');if(aw[0]===bw[0]&&aw[aw.length-1]===bw[bw.length-1])return 2;if(a.includes(b)||b.includes(a))return 2;if(aw[0]===bw[0])return 1;return 0;}
+function matchEmpByName(name,empList){let best=null,bs=0;for(const e of empList){const s=nameScore(name,e.name);if(s>bs){bs=s;best=e;}}return bs>=1?best:null;}
+function matchEmpByCode(code,empList){if(!code)return null;code=String(code).trim().toUpperCase();return empList.find(e=>(e.emp_id||'').toUpperCase()===code)||null;}
+function getMonth(){return document.getElementById('payrollMonth')?.value||new Date().toISOString().slice(0,7);}
+
+async function handleBankUpload(file){if(!file)return;const rpt=document.getElementById('bankReport');
+rpt.innerHTML='<div style="padding:20px;text-align:center"><div class="scan-spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><div class="scan-text">Reading...</div></div>';
+try{const ab=await file.arrayBuffer();const wb=XLSX.read(ab,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+let hdr=0;for(let i=0;i<Math.min(rows.length,5);i++){const r=rows[i].map(c=>String(c).toLowerCase());if(r.some(c=>c.includes('employee name')||c.includes('emp'))){hdr=i;break;}}
+const data=rows.slice(hdr+1).filter(r=>r[1]&&String(r[1]).trim()&&!String(r[1]).toLowerCase().includes('total'));
+const mo=getMonth();_employees=await window.dbGet('employees')||{};const empList=Object.entries(_employees).map(([k,e])=>({k,...e}));
+let matched=0;const unmatched=[];
+for(const row of data){const name=String(row[1]||'').trim();if(!name)continue;
+const emp=matchEmpByName(name,empList);
+if(emp){matched++;await window.dbUpdate(`employees/${emp.k}/remuneration_log/${mo}`,{
+net_pay:Number(row[13])||0,basic_amt:Number(row[6])||0,hra_amt:Number(row[7])||0,gross_amt:Number(row[8])||0,
+incentives:Number(row[9])||0,advance_deduction:Number(row[10])||0,esi_employee:Number(row[11])||0,epf_employee:Number(row[12])||0,
+bank_transfer_uploaded:new Date().toISOString()});}
+else unmatched.push(name);}
+rpt.innerHTML=`<div class="match-report"><div class="match-good">✓ ${matched} matched for ${mo}</div>${unmatched.length?`<div class="match-bad" style="margin-top:6px">✗ ${unmatched.length} unmatched: ${unmatched.slice(0,8).join(', ')}${unmatched.length>8?' …':''}</div>`:''}</div>`;
+showToast('Bank sheet: '+matched+' matched');
+}catch(err){rpt.innerHTML=`<div style="color:#e05;padding:12px;font-size:.82rem">Error: ${err.message}</div>`;}}
+
+async function handleGovtUpload(file){if(!file)return;const rpt=document.getElementById('govtReport');
+rpt.innerHTML='<div style="padding:20px;text-align:center"><div class="scan-spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><div class="scan-text">Reading...</div></div>';
+try{const ab=await file.arrayBuffer();const wb=XLSX.read(ab,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+let hdr=0;for(let i=0;i<Math.min(rows.length,5);i++){const r=rows[i].map(c=>String(c).toLowerCase());if(r.some(c=>c.includes('name'))&&r.some(c=>c.includes('basic'))){hdr=i;break;}}
+const headers=rows[hdr].map(c=>String(c).toLowerCase().trim());const ci=k=>headers.findIndex(h=>h.includes(k));
+const iName=ci('name'),iBasic=ci('basic'),iHra=ci('hra'),iGross=ci('gross'),iDed=ci('deduct'),iDa=ci('da'),iSpl=Math.max(ci('spl'),ci('special'));
+const iNet=headers.map((h,i)=>({h,i})).filter(x=>x.h.includes('net')).slice(-1)[0]?.i??-1;
+const mo=getMonth();const data=rows.slice(hdr+1).filter(r=>r[iName]&&String(r[iName]).trim()&&!String(r[iName]).toLowerCase().includes('total'));
+_employees=await window.dbGet('employees')||{};const empList=Object.entries(_employees).map(([k,e])=>({k,...e}));
+let matched=0;const unmatched=[];
+for(const row of data){const name=String(row[iName]||'').trim();if(!name)continue;
+const basic=iBasic>=0?Number(row[iBasic])||0:0,hra=iHra>=0?Number(row[iHra])||0:0,da=iDa>=0?Number(row[iDa])||0:0,spl=iSpl>=0?Number(row[iSpl])||0:0;
+const gross=iGross>=0?Number(row[iGross])||0:basic+hra+da+spl;const ded=iDed>=0?Number(row[iDed])||0:0;const net=iNet>=0?Number(row[iNet])||0:gross-ded;
+const emp=matchEmpByName(name,empList);
+if(emp){matched++;await window.dbUpdate(`employees/${emp.k}/remuneration_log/${mo}`,{net_pay:net,basic_amt:basic,hra_amt:hra,da,special_allowance:spl,gross_amt:gross,deductions:ded,govt_sheet_uploaded:new Date().toISOString()});}
+else unmatched.push(name);}
+rpt.innerHTML=`<div class="match-report"><div class="match-good">✓ ${matched} updated for ${mo}</div>${unmatched.length?`<div class="match-bad" style="margin-top:6px">✗ ${unmatched.length} unmatched: ${unmatched.slice(0,8).join(', ')}${unmatched.length>8?' …':''}</div>`:''}</div>`;
+showToast('Govt sheet: '+matched);
+}catch(err){rpt.innerHTML=`<div style="color:#e05;padding:12px;font-size:.82rem">Error: ${err.message}</div>`;}}
+
+// ─── BULK IMPORT ────────────────────────────────────
+async function handleBulkImport(file){if(!file)return;const rpt=document.getElementById('importReport');
+rpt.innerHTML='<div style="padding:12px;text-align:center"><div class="scan-spinner" style="width:28px;height:28px;margin:0 auto 8px"></div><div class="scan-text">Importing...</div></div>';
+try{const ab=await file.arrayBuffer();const wb=XLSX.read(ab,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+let hdr=0;for(let i=0;i<Math.min(rows.length,5);i++){if(rows[i].some(c=>String(c).toLowerCase().includes('employee name')||String(c).toLowerCase().includes('emp'))){hdr=i;break;}}
+const data=rows.slice(hdr+1).filter(r=>r[1]&&String(r[1]).trim()&&!String(r[1]).toLowerCase().includes('total'));
+_employees=await window.dbGet('employees')||{};const existing=new Set(Object.values(_employees).map(e=>normName(e.name)));
+let created=0,skipped=0;
+for(const row of data){const name=String(row[1]||'').trim();if(!name||existing.has(normName(name)))  {skipped++;continue;}
+const branch=String(row[3]||'').trim().toLowerCase();const outlet=branch.includes('jal')?'JLD':'GHB';
+const dept=branch.includes('jal')?'D03':'D00';const key=normName(name).replace(/\s+/g,'_');
+await window.dbSet('employees/'+key,{emp_id:'',name,phone:'',email:'',address:'',father_name:String(row[2]||'').trim(),
+outlet,department:dept,position:String(row[4]||'').trim(),joining_date:row[5]instanceof Date?row[5].toISOString().slice(0,10):'',
+last_working_day:'',status:'Active',ctc:String(Number(row[6])||''),basic:String(Number(row[6])||''),hra:'0',conv:'',spl_allowance:'',gross_rate:'',
+aadhaar:'',pan:'',account_no:'',ifsc:'',bank_name:'',pf_no:'',esi_no:'',uan_no:'',
+skills:[],experience_years:'',education:'',past_employers:[],notes:[{text:'Imported from salary sheet',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()});
+created++;existing.add(normName(name));}
+rpt.innerHTML=`<div class="match-report"><div class="match-good">✓ ${created} employees imported</div><div style="font-size:.78rem;color:var(--text3);margin-top:4px">${skipped} already existed / skipped</div></div>`;
+showToast(created+' imported');renderAllEmployees();
+}catch(err){rpt.innerHTML=`<div style="color:#e05;padding:12px;font-size:.82rem">Error: ${err.message}</div>`;}}
+
+// ─── SALARY SLIP PDF ────────────────────────────────
+function generateSlip(ek,month){const e=_employees[ek];if(!e)return;const rem=(e.remuneration_log||{})[month]||{};
+const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});const W=210,gld=[184,134,11];
+doc.setFillColor(15,15,20);doc.rect(0,0,W,42,'F');
+doc.setTextColor(240,192,64);doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text('HEEBEE COFFEE PVT. LTD.',W/2,14,{align:'center'});
+doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(160,160,170);doc.text('Sarabha Nagar, Ludhiana, Punjab — 141001',W/2,21,{align:'center'});
+doc.setTextColor(240,192,64);doc.setFontSize(9);doc.setFont('helvetica','bold');
+const[yr,mo]=month.split('-');const moN=['','January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mo)]||month;
+doc.text(`SALARY SLIP — ${moN.toUpperCase()} ${yr}`,W/2,31,{align:'center'});
+doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(120,120,130);doc.text(`PF: LDLDH2320080000 | ESI: 26000547770001102`,W/2,37,{align:'center'});
+doc.setDrawColor(...gld);doc.setLineWidth(0.5);doc.line(14,44,W-14,44);
+doc.setFontSize(8);const y0=52,g=7,L=14,R=W/2+4;
+const fld=(x,y,l,v)=>{doc.setFont('helvetica','bold');doc.setTextColor(...gld);doc.text(l,x,y);doc.setFont('helvetica','normal');doc.setTextColor(40,40,40);doc.text(String(v||'—'),x+28,y);};
+fld(L,y0,'EMP ID  :',e.emp_id);fld(L,y0+g,'NAME    :',e.name);fld(L,y0+g*2,'POSITION:',e.position);fld(L,y0+g*3,'OUTLET  :',`${e.outlet} / ${e.department}`);
+fld(R,y0,'JOINING :',e.joining_date);fld(R,y0+g,'BANK    :',e.bank_name);fld(R,y0+g*2,'ACCOUNT :',e.account_no);fld(R,y0+g*3,'IFSC    :',e.ifsc);
+const ty=y0+g*4+8;doc.setFillColor(15,15,20);doc.rect(14,ty,W-28,8,'F');
+doc.setTextColor(240,192,64);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+doc.text('EARNINGS',18,ty+5.5);doc.text('₹',78,ty+5.5,{align:'right'});doc.text('DEDUCTIONS',W/2+8,ty+5.5);doc.text('₹',W-16,ty+5.5,{align:'right'});
+const basic=Number(rem.basic_amt||rem.basic||e.basic||0),hra=Number(rem.hra_amt||rem.hra||e.hra||0);
+const conv=Number(rem.conv_amt||0),spl=Number(rem.spl_allow_amt||rem.special_allowance||0);
+const ot=Number(rem.ot_amt||rem.incentives||0),arr=Number(rem.arrear_amt||0),oth=Number(rem.other_allow_amt||0);
+const gross=Number(rem.gross_amt||rem.gross||basic+hra+conv+spl+ot+arr+oth);
+const esiE=Number(rem.esi_employee||rem.esi||0),epfE=Number(rem.epf_employee||rem.epf||0),pt=Number(rem.prof_tax||0);
+const wf=Number(rem.welfare_fund||0),fp=Number(rem.fp||0),tds=Number(rem.tds||0);
+const adv=Number(rem.advance_deduction||rem.advance||0),loan=Number(rem.loan_deduction||0),uni=Number(rem.uniform_deduction||0),misc=Number(rem.misc_deduction||0);
+const totDed=esiE+epfE+pt+wf+fp+tds+adv+loan+uni+misc;const net=Number(rem.net_pay||gross-totDed);
+const earn=[['Basic',basic],['HRA',hra]];if(conv)earn.push(['Conveyance',conv]);if(spl)earn.push(['Special Allow.',spl]);if(ot)earn.push(['OT / Incentives',ot]);if(arr)earn.push(['Arrears',arr]);if(oth)earn.push(['Other Allow.',oth]);
+const deds=[];if(esiE)deds.push(['ESI (Employee)',esiE]);if(epfE)deds.push(['EPF (Employee)',epfE]);if(pt)deds.push(['Professional Tax',pt]);if(wf)deds.push(['Welfare Fund',wf]);if(adv)deds.push(['Advance',adv]);if(loan)deds.push(['Loan',loan]);if(uni)deds.push(['Uniform',uni]);if(tds)deds.push(['TDS',tds]);if(misc)deds.push(['Misc',misc]);
+const mx=Math.max(earn.length,deds.length,1);doc.setFont('helvetica','normal');doc.setFontSize(8);
+for(let i=0;i<mx;i++){const ry=ty+8+i*8;doc.setFillColor(i%2===0?248:255,i%2===0?248:255,i%2===0?250:255);doc.rect(14,ry,W-28,8,'F');doc.setTextColor(40,40,40);
+if(earn[i]){doc.text(earn[i][0],18,ry+5.5);doc.text('₹'+Number(earn[i][1]).toLocaleString('en-IN'),78,ry+5.5,{align:'right'});}
+if(deds[i]){doc.text(deds[i][0],W/2+8,ry+5.5);doc.text('₹'+Number(deds[i][1]).toLocaleString('en-IN'),W-16,ry+5.5,{align:'right'});}}
+const tY=ty+8+mx*8;doc.setFillColor(240,235,215);doc.rect(14,tY,W-28,9,'F');doc.setFont('helvetica','bold');doc.setTextColor(80,60,10);doc.setFontSize(8.5);
+doc.text('GROSS',18,tY+6);doc.text('₹'+gross.toLocaleString('en-IN'),78,tY+6,{align:'right'});
+doc.text('TOTAL DEDUCTIONS',W/2+8,tY+6);doc.text('₹'+totDed.toLocaleString('en-IN'),W-16,tY+6,{align:'right'});
+// Working days
+const wdY=tY+14;const wd=rem.working_days||'—',hd=rem.holiday_days||'—',lv=rem.leave_days||'—';
+doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(100,100,110);
+doc.text(`Working Days: ${wd}  |  Holidays: ${hd}  |  Leave: ${lv}`,W/2,wdY,{align:'center'});
+const npY=wdY+6;doc.setFillColor(15,15,20);doc.rect(14,npY,W-28,14,'F');doc.setTextColor(240,192,64);doc.setFontSize(13);doc.setFont('helvetica','bold');
+doc.text(`NET PAY : ₹${net.toLocaleString('en-IN')}`,W/2,npY+9.5,{align:'center'});
+const fY=npY+22;doc.setDrawColor(...gld);doc.setLineWidth(0.3);doc.line(14,fY,W-14,fY);
+doc.setTextColor(140,140,150);doc.setFontSize(6.5);doc.setFont('helvetica','normal');
+doc.text('Computer generated slip. No signature required.',W/2,fY+5,{align:'center'});
+doc.text('Heebee Coffee Pvt. Ltd. | PF: LDLDH2320080000 | ESI: 26000547770001102',W/2,fY+10,{align:'center'});
+doc.save(`Heebee_Salary_${(e.name||'EMP').replace(/\s+/g,'_')}_${month}.pdf`);}
+
+// ─── SEED APRIL 2026 DATA ──────────────────────────
+async function seedApril2026(){const st=document.getElementById('seedStatus');st.textContent='Seeding...';st.style.color='var(--text3)';
+const emps=[
+{id:'EMP0012',name:'Gavish Batra',father:'Suresh Batra',outlet:'GHB',dept:'D02',pos:'Director',basic:125000,join:''},
+{id:'EMP0022',name:'Nitigya Soni',father:'Neeraj Soni',outlet:'GHB',dept:'D02',pos:'Director',basic:125000,join:''},
+{id:'EMP0042',name:'Anamika Deep Kaur',father:'Tejinder Singh',outlet:'GHB',dept:'D01',pos:'Accountant',basic:30770,hra:9230,join:'2023-01-09'},
+{id:'EMP0052',name:'Payal Soni',father:'Neeraj Soni',outlet:'GHB',dept:'D01',pos:'HOD',basic:87500,join:'2023-07-01'},
+{id:'EMP0062',name:'Narendra Singh',father:'Hayat Singh',outlet:'GHB',dept:'D01',pos:'Chef Baker',basic:23370,hra:0,conv:0,spl:3500,join:'2023-08-25'},
+{id:'EMP0084',name:'Gunjan Narang',father:'Surinder Pal Narang',outlet:'GHB',dept:'D01',pos:'HR',basic:32000,hra:10000,conv:2000,join:'2024-04-01'},
+{id:'EMP0095',name:'Kritika Singh',father:'Nitigya Soni',outlet:'GHB',dept:'D01',pos:'HOD',basic:79847,join:'2024-06-01'},
+{id:'EMP0120',name:'Santosh Batra',father:'Suresh Batra',outlet:'GHB',dept:'D01',pos:'Admin',basic:50000,join:'2024-07-01'},
+{id:'EMP0121',name:'Nistha Batra',father:'Suresh Batra',outlet:'GHB',dept:'D01',pos:'Admin',basic:32706,join:'2024-07-01'},
+{id:'EMP0159',name:'Jaspreet Kaur',father:'Tarwinder Singh',outlet:'GHB',dept:'D01',pos:'Asst. Accountant',basic:15800,pf:'10114',esi:'2614932213',uan:'102175172326',join:'2025-02-20'},
+{id:'EMP0204',name:'Gurdeep Singh (Driver)',father:'Gian Singh',outlet:'GHB',dept:'D01',pos:'Driver',basic:20000,esi:'2615042985',join:'2025-10-07'},
+{id:'EMP0024',name:'Pritpal Singh',father:'Sukhdev Singh',outlet:'GHB',dept:'D00',pos:'Chef Baker',basic:17700,hra:5300,pf:'10029',esi:'2614161576',uan:'101675232672',join:''},
+{id:'EMP0037',name:'Ashima Batra',father:'Gavish Batra',outlet:'GHB',dept:'D00',pos:'Admin',basic:86300,join:''},
+{id:'EMP0058',name:'Shailender',father:'Hari Ram',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:18500,hra:5000,pf:'10074',esi:'2614653551',uan:'101988332817',join:'2023-02-16'},
+{id:'EMP0089',name:'Pooja',father:'Ram Raj',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2021-09-06'},
+{id:'EMP0091',name:'Milan Chopra',father:'Shashi Pal Chopra',outlet:'GHB',dept:'D00',pos:'Chef De Partie',basic:30800,join:'2024-05-03'},
+{id:'EMP0094',name:'Simran (FM)',father:'Rahul Kumar',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:18850,hra:5650,pf:'10101',esi:'2613567852',uan:'101281632753',join:'2021-09-06'},
+{id:'EMP0117',name:'Mohammad Ibraheem',father:'Gulam Nabi Kawa',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:20900,esi:'2614828916',join:'2024-09-16'},
+{id:'EMP0123',name:'Javed Akhtar',father:'Shamshad Khan',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,esi:'2614836012',join:'2024-08-05'},
+{id:'EMP0137',name:'Shubham Kumar',father:'Sunil Kumar',outlet:'GHB',dept:'D00',pos:'Inventory Manager',basic:36500,join:'2024-09-01'},
+{id:'EMP0144',name:'Sumit Miglani',father:'Tony Miglani',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:20000,esi:'2614653063',join:'2024-12-02'},
+{id:'EMP0145',name:'Neha',father:'Mahesh Kumar',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:23500,esi:'1713948211',join:'2024-11-04'},
+{id:'EMP0149',name:'Sandeep Singh',father:'Kulwant Singh',outlet:'GHB',dept:'D00',pos:'Commi-2',basic:15000,hra:2500,pf:'10109',esi:'2614405322',uan:'101819214359',join:'2024-11-06'},
+{id:'EMP0156',name:'Amandeep Kaur',father:'Gurmeet Singh',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:21500,esi:'2614921103',join:'2025-01-25'},
+{id:'EMP0160',name:'Prabhjot Kaur',father:'Kulvinder Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614932206',join:'2025-02-25'},
+{id:'EMP0162',name:'Ritik',father:'Dharam Pal',outlet:'GHB',dept:'D00',pos:'Co-od Inventory',basic:16720,pf:'10117',esi:'2614938103',uan:'102184027267',join:'2025-03-06'},
+{id:'EMP0165',name:'Gurvinder Kaur',father:'Amrik Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15800,pf:'10125',esi:'2614945028',uan:'101938987000',join:'2025-03-21'},
+{id:'EMP0181',name:'Anarjit Kumar',father:'Kamod Yadav',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614973594',join:'2025-05-23'},
+{id:'EMP0184',name:'Gurpreet Kaur',father:'Rachhpal Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993781',join:'2025-07-01'},
+{id:'EMP0185',name:'Gurdeep Singh (DCDP)',father:'Harwinder Singh',outlet:'GHB',dept:'D00',pos:'DCDP',basic:32500,join:'2025-07-01'},
+{id:'EMP0186',name:'Kamaljit Kaur',father:'Sukhwinder Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:13750,pf:'10127',esi:'2614998804',uan:'102234784780',join:'2025-07-03'},
+{id:'EMP0003',name:'Anjni Singh',father:'Balkaran Singh',outlet:'GHB',dept:'D00',pos:'Guard',basic:12692,hra:3808,pf:'10039',esi:'2614272803',uan:'101735795047',join:''},
+{id:'EMP0199',name:'Ishpreet Singh',father:'Maninder Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615023781',join:'2025-08-22'},
+{id:'EMP0202',name:'Manpreet Kaur',father:'Bhajan Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615032360',join:'2025-09-15'},
+{id:'EMP0207',name:'Simran (Barista)',father:'Sandeep Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:13750,pf:'10129',esi:'2614866856',uan:'102125007419',join:'2025-11-03'},
+{id:'EMP0208',name:'Parvesh Heera',father:'Baldev Raj',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:15200,esi:'2615049816',join:'2025-11-03'},
+{id:'EMP0209',name:'Surjeet Singh',father:'Jaswinder Singh',outlet:'GHB',dept:'D00',pos:'Commi-3 Chef',basic:15200,esi:'2615050470',join:'2025-11-04'},
+{id:'EMP0210',name:'Anmol Singh',father:'Suresh Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2614993823',join:'2025-11-04'},
+{id:'EMP0211',name:'Bipan Kumar',father:'Hari Ram',outlet:'GHB',dept:'D00',pos:'Sous Chef',basic:37000,join:'2025-11-10'},
+{id:'EMP0213',name:'Tejdeep Singh',father:'Gursewak Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615056272',join:'2025-11-17'},
+{id:'EMP0215',name:'Sarpreet Singh',father:'Manjit Singh',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:23000,join:'2025-11-22'},
+{id:'EMP0217',name:'Manik Kapoor',father:'Vikram Kapoor',outlet:'GHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615059567',join:'2025-11-25'},
+{id:'EMP0218',name:'Sunita',father:'Tek Bahadur',outlet:'GHB',dept:'D00',pos:'Sr. Barista',basic:17500,esi:'2614152341',join:'2025-12-01'},
+{id:'EMP0219',name:'Manvir Kaur',father:'Avtar Singh',outlet:'GHB',dept:'D00',pos:'Marketing Intern',basic:15200,esi:'2615064537',join:'2025-12-01'},
+{id:'EMP0220',name:'Ayush Thakur',father:'Amrik Singh',outlet:'GHB',dept:'D00',pos:'Commi-1 Chef',basic:20000,esi:'2417677704',join:'2025-12-06'},
+{id:'EMP0222',name:'Gurpreet Singh',father:'Harpreet Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'1513484696',join:'2026-01-15'},
+{id:'EMP0223',name:'Samridhi Goyal',father:'Sachin Goyal',outlet:'GHB',dept:'D00',pos:'Bakery Chef',basic:15200,esi:'1513484603',join:'2026-01-17'},
+{id:'EMP0224',name:'Ankush Dumra',father:'Ajay Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:16500,esi:'2614547212',join:'2026-02-13'},
+{id:'EMP0225',name:'Sonia (LDH)',father:'Ramesh Kumar',outlet:'GHB',dept:'D00',pos:'Barista',basic:17000,esi:'2615095812',join:'2026-02-25'},
+{id:'EMP0226',name:'Aman Bhatt',father:'Deepak Kumar',outlet:'GHB',dept:'D00',pos:'Commi-3',basic:15200,esi:'2615099361',join:'2026-03-05'},
+{id:'EMP0227',name:'Amritpal Kaur',father:'Inderjit Singh',outlet:'GHB',dept:'D00',pos:'Barista',basic:15200,esi:'2615098916',join:'2026-03-09'},
+{id:'EMP0229',name:'Rakshat',father:'Sanjeev Kumar',outlet:'GHB',dept:'D00',pos:'Commi-III',basic:15200,esi:'2615100382',join:'2026-03-09'},
+{id:'EMP0231',name:'Kamanpreet Singh',father:'Khushvir Singh',outlet:'GHB',dept:'D00',pos:'Executive Assistant',basic:22000,join:'2026-04-13'},
+{id:'EMP0232',name:'Shamjeet Singh',father:'Jagtar Singh',outlet:'GHB',dept:'D00',pos:'Floor Manager',basic:24500,join:'2026-04-20'},
+{id:'EMP0107',name:'Sagar Kumar',father:'Kulwinder Singh',outlet:'JLD',dept:'D03',pos:'DCDP',basic:22000,esi:'2914290667',join:'2024-07-11'},
+{id:'EMP0134',name:'Sonia (JLD)',father:'Vinod Paswan',outlet:'JLD',dept:'D03',pos:'Barista',basic:16720,esi:'2614847744',join:'2024-08-14'},
+{id:'EMP0139',name:'Nikita',father:'Vijay Pegani',outlet:'JLD',dept:'D03',pos:'Barista',basic:16720,esi:'2614853831',join:'2024-09-05'},
+{id:'EMP0142',name:'Deepika',father:'Sukhwinder Lal',outlet:'JLD',dept:'D03',pos:'Barista',basic:16720,esi:'2914252103',join:'2024-09-24'},
+{id:'EMP0164',name:'Muneer Ah Lone',father:'Ali Mohd Lone',outlet:'JLD',dept:'D03',pos:'Barista',basic:17820,esi:'2614945172',join:'2025-03-11'},
+{id:'EMP0176',name:'Rohan Saroay',father:'Kishore Lal',outlet:'JLD',dept:'D03',pos:'Barista',basic:15200,esi:'1216572966',join:'2025-04-24'},
+{id:'EMP0189',name:'Puneet Kumar',father:'Hussan Lal',outlet:'JLD',dept:'D03',pos:'Barista',basic:13750,pf:'10126',esi:'2615009476',uan:'102234784779',join:'2025-07-21'},
+{id:'EMP0193',name:'Reema',father:'Ram Chander',outlet:'JLD',dept:'D03',pos:'Barista',basic:13750,pf:'10128',esi:'2615016131',uan:'102245880447',join:'2025-08-05'},
+{id:'EMP0205',name:'Rohin Dogra',father:'Gurbachan Singh',outlet:'JLD',dept:'D03',pos:'Commi-1',basic:20000,esi:'2615044012',join:'2025-10-13'},
+{id:'EMP0212',name:'Sahil',father:'Rakesh Kumar',outlet:'JLD',dept:'D03',pos:'Barista',basic:13750,pf:'10131',esi:'2615054789',uan:'102268718700',join:'2025-11-08'},
+{id:'EMP0214',name:'Maroof Ahmad Gojar Kataria',father:'Maam U Din',outlet:'JLD',dept:'D03',pos:'Barista',basic:13750,pf:'10132',esi:'2615056642',uan:'102268724162',join:'2025-11-20'},
+{id:'EMP0221',name:'Rajat Sharma',father:'Raj Kumar Sharma',outlet:'JLD',dept:'D03',pos:'Manager',basic:32000,join:'2025-12-13'},
+{id:'EMP0228',name:'Kuljeet Singh',father:'Kuldeep Singh',outlet:'JLD',dept:'D03',pos:'Commi-1 Chef',basic:20000,esi:'2615032375',join:'2026-03-09'}
+];
+let done=0;
+for(const em of emps){const key=em.id;
+await window.dbSet('employees/'+key,{emp_id:em.id,name:em.name,phone:'',email:'',address:'',father_name:em.father||'',
+outlet:em.outlet,department:em.dept,position:em.pos,joining_date:em.join||'',last_working_day:'',status:'Active',
+ctc:String(em.basic),basic:String(em.basic),hra:String(em.hra||0),conv:String(em.conv||0),spl_allowance:String(em.spl||0),gross_rate:'',
+aadhaar:'',pan:'',account_no:'',ifsc:'',bank_name:'',pf_no:em.pf||'',esi_no:em.esi||'',uan_no:em.uan||'',
+skills:[],experience_years:'',education:'',past_employers:[],dob:'',
+notes:[{text:'Seeded from April 2026 salary sheets',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()});
+done++;}
+st.textContent=`◈ ${done} employees seeded successfully`;st.style.color='var(--gold)';showToast(done+' employees seeded');renderAllEmployees();}
+</script>
+</body>
+</html>
