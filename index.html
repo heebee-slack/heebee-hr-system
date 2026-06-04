@@ -201,6 +201,12 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <label class="login-label">PIN</label>
 <input class="login-input" type="password" id="loginPin" placeholder="••••" maxlength="4" autocomplete="current-password">
 <button class="login-btn" onclick="doLogin()">Enter System</button>
+<div id="biometricLoginWrap" style="display:none;margin-top:16px">
+<div style="height:1px;background:var(--border2);margin:8px 0 16px"></div>
+<button class="login-btn" style="background:var(--gold);color:#fff" onclick="biometricLogin()">
+<span id="bioLoginLabel">◎ Login with Biometrics</span>
+</button>
+</div>
 <div class="login-err" id="loginErr"></div>
 </div>
 </div>
@@ -327,6 +333,13 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div class="upload-zone" onclick="document.getElementById('importFile').click()" style="padding:24px 16px"><div class="upload-icon" style="font-size:1.4rem">◎</div><div class="upload-title" style="font-size:.9rem">Upload Salary Sheet to Import</div><div class="upload-sub">.xlsx</div></div>
 <input type="file" id="importFile" class="file-input" accept=".xlsx,.xls" onchange="handleBulkImport(this.files[0])">
 <div id="importReport"></div>
+</div>
+<div class="settings-section">
+<div class="section-title">Biometric Login</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:12px">Use Face ID, Touch ID, or fingerprint to login instantly on this device.</p>
+<div id="bioStatus" style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3);margin-bottom:10px"></div>
+<button class="save-btn" id="bioEnableBtn" onclick="registerBiometric()">Enable Biometric Login</button>
+<button class="save-btn" id="bioRemoveBtn" style="display:none;background:none;color:#e05;border:1px solid rgba(238,0,85,0.3);margin-top:8px" onclick="removeBiometric()">Remove Biometric</button>
 </div>
 <div class="settings-section">
 <div class="section-title">Access</div>
@@ -779,8 +792,91 @@ notes:[{text:'Seeded from April 2026 salary sheets',ts:new Date().toISOString()}
 done++;}
 st.textContent=`◈ ${done} employees seeded successfully`;st.style.color='var(--gold)';showToast(done+' employees seeded');renderAllEmployees();}
 
+// ─── WEBAUTHN BIOMETRIC LOGIN ───────────────────────
+const BIO_KEY='hb_hr_bio';
+function bioSupported(){return window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable;}
+function getBioData(){try{return JSON.parse(localStorage.getItem(BIO_KEY));}catch(e){return null;}}
+
+function bufToB64(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)));}
+function b64ToBuf(b64){const s=atob(b64);const buf=new Uint8Array(s.length);for(let i=0;i<s.length;i++)buf[i]=s.charCodeAt(i);return buf.buffer;}
+
+async function registerBiometric(){
+const bs=document.getElementById('bioStatus');
+try{
+  const avail=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  if(!avail){bs.textContent='✗ Biometric not available on this device';bs.style.color='#e05';return;}
+  const user=sessionStorage.getItem('hb_hr_user');
+  if(!user){showToast('Login first, then enable biometrics');return;}
+  const userId=new TextEncoder().encode(user);
+  const challenge=crypto.getRandomValues(new Uint8Array(32));
+  const cred=await navigator.credentials.create({publicKey:{
+    challenge,
+    rp:{name:'Heebee HR',id:location.hostname},
+    user:{id:userId,name:user,displayName:user.split('@')[0]},
+    pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred',requireResidentKey:false},
+    timeout:60000,
+    attestation:'none'
+  }});
+  const bioData={credId:bufToB64(cred.rawId),email:user,created:new Date().toISOString()};
+  localStorage.setItem(BIO_KEY,JSON.stringify(bioData));
+  bs.textContent='◈ Biometric registered for '+user;bs.style.color='var(--gold)';
+  showToast('Biometric login enabled');
+  updateBioUI();
+}catch(e){
+  if(e.name==='NotAllowedError'){bs.textContent='Biometric cancelled';bs.style.color='var(--text3)';}
+  else{bs.textContent='✗ '+e.message;bs.style.color='#e05';}
+}}
+
+async function biometricLogin(){
+const bio=getBioData();if(!bio){showToast('No biometric registered');return;}
+try{
+  const challenge=crypto.getRandomValues(new Uint8Array(32));
+  const assertion=await navigator.credentials.get({publicKey:{
+    challenge,
+    allowCredentials:[{id:b64ToBuf(bio.credId),type:'public-key',transports:['internal']}],
+    userVerification:'required',
+    timeout:60000
+  }});
+  if(assertion){
+    const email=bio.email;
+    if(USERS[email]){
+      sessionStorage.setItem('hb_hr_user',email);
+      document.getElementById('loginWrap').style.display='none';
+      document.getElementById('appLayout').style.display='flex';
+      loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();
+      showToast('Welcome back');
+    }else{document.getElementById('loginErr').textContent='Biometric user not found';}
+  }
+}catch(e){
+  if(e.name==='NotAllowedError'){document.getElementById('loginErr').textContent='Authentication cancelled';}
+  else{document.getElementById('loginErr').textContent='Biometric failed: '+e.message;}
+}}
+
+function removeBiometric(){localStorage.removeItem(BIO_KEY);showToast('Biometric removed');updateBioUI();
+document.getElementById('bioStatus').textContent='Biometric removed';document.getElementById('bioStatus').style.color='var(--text3)';}
+
+function updateBioUI(){
+const bio=getBioData();
+// Login screen
+const bioWrap=document.getElementById('biometricLoginWrap');
+if(bioWrap)bioWrap.style.display=bio?'block':'none';
+if(bio){const lbl=document.getElementById('bioLoginLabel');if(lbl)lbl.textContent='◎ Login with Face ID / Fingerprint';}
+// Settings
+const enBtn=document.getElementById('bioEnableBtn');
+const rmBtn=document.getElementById('bioRemoveBtn');
+if(enBtn)enBtn.style.display=bio?'none':'inline-block';
+if(rmBtn)rmBtn.style.display=bio?'inline-block':'none';
+}
+
 // ─── AUTO-LOGIN ON REFRESH ──────────────────────────
-(function(){const u=sessionStorage.getItem('hb_hr_user');if(u&&USERS[u]){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}})();
+(function(){
+const u=sessionStorage.getItem('hb_hr_user');
+if(u&&USERS[u]){document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}
+updateBioUI();
+// Auto-trigger biometric on load if registered and not logged in
+if(!u&&getBioData()){setTimeout(()=>biometricLogin(),500);}
+})();
 </script>
 </body>
 </html>
