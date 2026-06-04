@@ -119,6 +119,16 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 .status-on\ leave,.status-on-leave{background:rgba(139,92,246,0.12);color:#8b5cf6}
 .status-probation{background:rgba(245,158,11,0.12);color:#f59e0b}
 .status-absconding{background:rgba(239,68,68,0.12);color:#ef4444}
+.pf-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:.38rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.pf-enrolled{background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.2)}
+.pf-opted-out{background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15)}
+.toggle-wrap{display:flex;align-items:center;gap:12px;padding:12px 0}
+.toggle-switch{position:relative;width:48px;height:26px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:rgba(239,68,68,0.2);border-radius:26px;transition:background .3s}
+.toggle-switch input:checked+.toggle-track{background:rgba(16,185,129,0.3)}
+.toggle-track::after{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#ef4444;border-radius:50%;transition:transform .3s,background .3s}
+.toggle-switch input:checked+.toggle-track::after{transform:translateX(22px);background:#10b981}
 .emp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
 .emp-row{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;cursor:pointer;transition:box-shadow .25s;display:flex;align-items:center;gap:16px}
 .emp-row:hover{box-shadow:var(--shadow2)}
@@ -557,7 +567,7 @@ el.innerHTML=list.map(e=>empRowHTML(e,'all')).join('');}
 
 function empRowHTML(e,panel){return`<div class="emp-row" onclick="openEmpDetail('${e.id}','${panel}')">
 <div class="emp-avatar">${(e.name||'?').charAt(0).toUpperCase()}</div>
-<div class="emp-info"><div class="emp-id-tag">${e.emp_id||'—'}</div><div class="emp-name-main">${e.name||'—'}</div><div class="emp-pos">${e.position||'—'}</div></div>
+<div class="emp-info"><div class="emp-id-tag">${e.emp_id||'—'}</div><div class="emp-name-main">${e.name||'—'}<span class="pf-badge ${e.epf_opted_out?'pf-opted-out':'pf-enrolled'}">${e.epf_opted_out?'PF Opted Out':'PF Enrolled'}</span></div><div class="emp-pos">${e.position||'—'}</div></div>
 <span class="emp-outlet-tag">${e.outlet||'—'}</span>
 <span class="status-pill status-${(e.status||'active').toLowerCase()}">${e.status||'Active'}</span></div>`;}
 
@@ -642,6 +652,28 @@ ${dv('CTC / Month','₹'+N(e.ctc))}${dv('Basic','₹'+N(e.basic))}${dv('HRA','�
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">KYC & Banking</div><div class="detail-grid">
 ${dv('Aadhaar',e.aadhaar?e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3'):'')}${dv('PAN',e.pan)}${dv('Bank',e.bank_name)}${dv('Account',e.account_no)}${dv('IFSC',e.ifsc)}${dv('PF No',e.pf_no)}${dv('ESI No',e.esi_no)}${dv('UAN',e.uan_no)}
 </div></div>
+<div class="glass-card" style="margin-bottom:14px">
+<div class="section-title">EPF / Provident Fund</div>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+<div>
+<div style="font-size:.92rem;font-weight:600;color:var(--text);margin-bottom:4px">${e.epf_opted_out?'<span style="color:#ef4444">◈ EPF Opted Out</span>':'<span style="color:#10b981">◈ EPF Enrolled</span>'}</div>
+<div style="font-size:.75rem;color:var(--text3);max-width:500px">${e.epf_opted_out?'Employee has opted out of EPF scheme via Form 11. No PF deductions applied. No UAN generated.':'Employee is enrolled in EPF. Monthly contributions: 12% employee + 12% employer on Basic pay.'}</div>
+${e.uan_no?`<div style="font-family:Space Mono,monospace;font-size:.48rem;color:var(--gold);margin-top:4px">UAN: ${e.uan_no}</div>`:''}
+</div>
+<div style="display:flex;align-items:center;gap:12px">
+<label class="toggle-switch"><input type="checkbox" ${e.epf_opted_out?'':'checked'} onchange="toggleEPF('${empKey}',!this.checked)"><span class="toggle-track"></span></label>
+<span style="font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)">${e.epf_opted_out?'OPTED OUT':'ENROLLED'}</span>
+</div>
+</div>
+${e.epf_opted_out?`<div style="margin-top:12px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:#ef4444;margin-bottom:8px">OPT-OUT REQUIREMENTS</div>
+<div style="font-size:.78rem;color:var(--text2);line-height:1.6">
+◈ Employee must sign <b>Form 11</b> + written declaration (Annexure C)<br>
+◈ Must be a <b>fresh joinee</b> — never been an EPF member before (no existing UAN)<br>
+◈ Basic salary must exceed <b>₹15,000/month</b><br>
+◈ Once opted out at joining, this <b>cannot be reversed</b>
+</div></div>`:''}
+</div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">Documents</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 <div>
@@ -690,6 +722,69 @@ const notes=[...(e.notes||[]),{text:txt,ts:new Date().toISOString()}];await wind
 async function changeEmpStatus(ek,newStatus){
 await window.dbUpdate('employees/'+ek,{status:newStatus,last_working_day:newStatus!=='Active'&&newStatus!=='Probation'?new Date().toISOString().slice(0,10):''});
 showToast('Status → '+newStatus);openEmpDetail(ek,_detailPanel);}
+
+// ─── EPF OPT-IN / OPT-OUT TOGGLE ───────────────────
+async function toggleEPF(empKey,optOut){
+const e=_employees[empKey];if(!e)return;
+if(optOut){
+  // Opting OUT — validate eligibility and send WhatsApp
+  const basic=Number(e.basic)||0;
+  if(e.uan_no&&e.uan_no.trim()){
+    showToast('Cannot opt out — employee already has a UAN (existing PF member)');return;}
+  await window.dbUpdate('employees/'+empKey,{epf_opted_out:true,pf_no:'',uan_no:''});
+  showToast('EPF opted out for '+e.name);
+  // Send WhatsApp with full explanation + Form 11 info
+  const phone=(e.phone||'').replace(/\D/g,'');
+  if(phone){
+    const msg=encodeURIComponent(
+`*HEEBEE COFFEE PVT. LTD.*
+*EPF Opt-Out Notice*
+
+Dear ${e.name},
+
+As per your request, you are choosing to *opt out of the Employees' Provident Fund (EPF) scheme* at the time of joining Heebee Coffee.
+
+*What this means:*
+◈ No Provident Fund (PF) deductions will be made from your salary
+◈ No Universal Account Number (UAN) will be generated for you
+◈ The employer will also not contribute to your PF account
+◈ This decision is *permanent* and cannot be reversed once processed
+
+*Eligibility conditions you must meet:*
+1. You must be a *fresh joinee* — you have never been a member of any EPF or Pension Scheme previously
+2. You do not have a previously generated UAN
+3. Your Basic salary exceeds ₹15,000 per month
+
+*Documents required from you:*
+📋 *Form 11* — Declaration of non-membership (you must fill and sign this)
+📋 *Annexure C* — Written declaration opting out of EPF
+📋 *Copy of Aadhaar Card*
+📋 *Copy of PAN Card*
+
+Please submit these signed documents to HR at the time of joining.
+
+*Important:* If you have ever been enrolled in EPF at any previous employer, you are NOT eligible to opt out and must continue contributing. Making a false declaration is a legal offence under the EPF Act.
+
+If you have any questions, please contact HR.
+
+— Heebee Coffee HR System
+Emp ID: ${e.emp_id}
+Date: ${new Date().toLocaleDateString('en-IN')}`);
+    const waUrl=`https://wa.me/${phone.startsWith('91')?'':'91'}${phone}?text=${msg}`;
+    window.open(waUrl,'_blank');
+    showToast('WhatsApp sent to '+e.name);
+  }else{showToast('No phone number — add phone to send WhatsApp');}
+  // Add note
+  const notes=[...(e.notes||[]),{text:'EPF opted out. WhatsApp notification sent with Form 11 requirements.',ts:new Date().toISOString()}];
+  await window.dbUpdate('employees/'+empKey,{notes});
+}else{
+  // Opting back IN
+  await window.dbUpdate('employees/'+empKey,{epf_opted_out:false});
+  showToast('EPF re-enrolled for '+e.name);
+  const notes=[...(e.notes||[]),{text:'EPF re-enrolled.',ts:new Date().toISOString()}];
+  await window.dbUpdate('employees/'+empKey,{notes});
+}
+openEmpDetail(empKey,_detailPanel);}
 
 // ─── DOCUMENT UPLOAD (Camera + File) ────────────────
 async function uploadDoc(empKey,field,file){
@@ -1079,7 +1174,7 @@ if(splD)splD.textContent=`${splPct}%`;}
 // Live preview on input change
 document.addEventListener('input',e=>{if(e.target.id&&e.target.id.startsWith('split'))updateSplitPreview();});
 
-function calcGovtSplit(ctc){
+function calcGovtSplit(ctc,epfOptedOut){
 const s=getSplitConfig();
 const bPct=Math.max(50,s.basicPct||50);
 const hPct=Math.min(s.hraPct||0,100-bPct);
@@ -1090,9 +1185,9 @@ const gross=ctc;
 const esiApplicable=gross<=s.esiThreshold;
 const esiEmp=esiApplicable?Math.round(gross*s.esiEmpPct/100):0;
 const esiEr=esiApplicable?Math.round(gross*s.esiErPct/100):0;
-const epfEmp=Math.round(basic*s.epfEmpPct/100);
-const epfEr=Math.round(basic*s.epfErPct/100);
-const pension=Math.round(basic*8.33/100);
+const epfEmp=epfOptedOut?0:Math.round(basic*s.epfEmpPct/100);
+const epfEr=epfOptedOut?0:Math.round(basic*s.epfErPct/100);
+const pension=epfOptedOut?0:Math.round(basic*8.33/100);
 const epfErActual=epfEr-pension;
 const pt=s.profTax;
 const totalDed=esiEmp+epfEmp+pt;
@@ -1103,7 +1198,7 @@ function renderGovtSplitCard(empKey){
 const e=_employees[empKey];if(!e)return;
 const ctc=Number(e.ctc)||Number(e.basic)||0;
 if(!ctc){const el=document.getElementById('govtSplitCard_'+empKey);if(el)el.innerHTML='<span style="color:var(--text3)">No CTC set</span>';return;}
-const g=calcGovtSplit(ctc);
+const g=calcGovtSplit(ctc,e.epf_opted_out);
 const el=document.getElementById('govtSplitCard_'+empKey);
 if(!el)return;
 el.innerHTML=`
@@ -1133,7 +1228,7 @@ const e=_employees[empKey];if(!e)return;
 const rem=e.remuneration_log||{};
 const months=Object.keys(rem).sort();
 if(!months.length){showToast('No salary records to download');return;}
-const rows=months.map(m=>{const d=rem[m];const s=getSplitConfig();const ctc=Number(e.ctc)||Number(e.basic)||0;const g=calcGovtSplit(ctc);
+const rows=months.map(m=>{const d=rem[m];const s=getSplitConfig();const ctc=Number(e.ctc)||Number(e.basic)||0;const g=calcGovtSplit(ctc,e.epf_opted_out);
 return{
   Month:m,
   'Emp ID':e.emp_id,'Name':e.name,'Position':e.position,'Outlet':e.outlet,
@@ -1228,7 +1323,7 @@ if(!list.length){document.getElementById('govtSheetPreview').innerHTML='<div cla
 // Build govt sheet data
 _govtSheetData=list.map((e,i)=>{
 const ctc=Number(e.ctc)||Number(e.basic)||0;
-const g=calcGovtSplit(ctc);
+const g=calcGovtSplit(ctc,e.epf_opted_out);
 // Check if we have actual payroll data for this month
 const rem=(e.remuneration_log||{})[mo]||{};
 const wDays=Number(rem.working_days)||26;
@@ -1415,7 +1510,7 @@ let totGross=0,totEpfWage=0,totEpfEE=0,totEPS=0;
 
 list.forEach(e=>{
 const ctc=Number(e.ctc)||Number(e.basic)||0;
-const g=calcGovtSplit(ctc);
+const g=calcGovtSplit(ctc,e.epf_opted_out);
 const rem=(e.remuneration_log||{})[mo]||{};
 const wDays=Number(rem.working_days)||26;
 const hDays=Number(rem.holiday_days)||4;
