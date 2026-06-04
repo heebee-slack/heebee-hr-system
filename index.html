@@ -116,6 +116,9 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 .status-active{background:rgba(16,185,129,0.12);color:#10b981}
 .status-resigned{background:rgba(107,114,128,0.12);color:#6b7280}
 .status-terminated{background:rgba(239,68,68,0.12);color:#ef4444}
+.status-on\ leave,.status-on-leave{background:rgba(139,92,246,0.12);color:#8b5cf6}
+.status-probation{background:rgba(245,158,11,0.12);color:#f59e0b}
+.status-absconding{background:rgba(239,68,68,0.12);color:#ef4444}
 .emp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
 .emp-row{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;cursor:pointer;transition:box-shadow .25s;display:flex;align-items:center;gap:16px}
 .emp-row:hover{box-shadow:var(--shadow2)}
@@ -549,7 +552,14 @@ const html=`
 <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
 ${wa?`<a href="https://wa.me/${wa.startsWith('91')?'':'91'}${wa}" target="_blank"><button class="btn-whatsapp" style="padding:8px 14px;font-size:.7rem">WhatsApp</button></a>`:''}
 <button class="btn-ghost" style="padding:8px 14px;font-size:.7rem" onclick="openEditModal('${empKey}')">◈ Edit</button>
-<button class="btn-ghost" style="padding:8px 14px;font-size:.7rem" onclick="cycleEmpStatus('${empKey}')">Status ↻</button>
+<select class="filter-select" style="padding:6px 12px;font-size:.48rem" onchange="changeEmpStatus('${empKey}',this.value)">
+<option value="Active" ${(e.status||'Active')==='Active'?'selected':''}>Active</option>
+<option value="Resigned" ${e.status==='Resigned'?'selected':''}>Resigned</option>
+<option value="Terminated" ${e.status==='Terminated'?'selected':''}>Terminated</option>
+<option value="On Leave" ${e.status==='On Leave'?'selected':''}>On Leave</option>
+<option value="Probation" ${e.status==='Probation'?'selected':''}>Probation</option>
+<option value="Absconding" ${e.status==='Absconding'?'selected':''}>Absconding</option>
+</select>
 </div></div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">Contact & Employment</div><div class="detail-grid">
 ${dv('Phone',e.phone)}${dv('Email',e.email)}${dv('Address',e.address)}${dv('Father',e.father_name)}
@@ -561,6 +571,24 @@ ${dv('CTC / Month','₹'+N(e.ctc))}${dv('Basic','₹'+N(e.basic))}${dv('HRA','�
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">KYC & Banking</div><div class="detail-grid">
 ${dv('Aadhaar',e.aadhaar?e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3'):'')}${dv('PAN',e.pan)}${dv('Bank',e.bank_name)}${dv('Account',e.account_no)}${dv('IFSC',e.ifsc)}${dv('PF No',e.pf_no)}${dv('ESI No',e.esi_no)}${dv('UAN',e.uan_no)}
 </div></div>
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Documents</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<div class="detail-label" style="margin-bottom:8px">Aadhaar Card</div>
+${e.doc_aadhaar?`<div style="margin-bottom:8px"><img src="${e.doc_aadhaar}" style="width:100%;border-radius:10px;border:1px solid var(--border2);max-height:180px;object-fit:cover;cursor:pointer" onclick="window.open(this.src)"></div><button class="btn-ghost" style="padding:6px 12px;font-size:.6rem;min-width:auto;flex:none" onclick="removeDoc('${empKey}','doc_aadhaar')">✕ Remove</button>`:`<div style="display:flex;gap:8px;flex-wrap:wrap">
+<label style="cursor:pointer"><input type="file" accept="image/*" capture="environment" style="display:none" onchange="uploadDoc('${empKey}','doc_aadhaar',this.files[0])"><span class="btn-ghost" style="display:inline-block;padding:8px 14px;font-size:.6rem;min-width:auto">◎ Camera</span></label>
+<label style="cursor:pointer"><input type="file" accept="image/*,.pdf,.jpg,.jpeg,.png" style="display:none" onchange="uploadDoc('${empKey}','doc_aadhaar',this.files[0])"><span class="btn-ghost" style="display:inline-block;padding:8px 14px;font-size:.6rem;min-width:auto">◇ Upload File</span></label>
+</div>`}
+</div>
+<div>
+<div class="detail-label" style="margin-bottom:8px">PAN Card</div>
+${e.doc_pan?`<div style="margin-bottom:8px"><img src="${e.doc_pan}" style="width:100%;border-radius:10px;border:1px solid var(--border2);max-height:180px;object-fit:cover;cursor:pointer" onclick="window.open(this.src)"></div><button class="btn-ghost" style="padding:6px 12px;font-size:.6rem;min-width:auto;flex:none" onclick="removeDoc('${empKey}','doc_pan')">✕ Remove</button>`:`<div style="display:flex;gap:8px;flex-wrap:wrap">
+<label style="cursor:pointer"><input type="file" accept="image/*" capture="environment" style="display:none" onchange="uploadDoc('${empKey}','doc_pan',this.files[0])"><span class="btn-ghost" style="display:inline-block;padding:8px 14px;font-size:.6rem;min-width:auto">◎ Camera</span></label>
+<label style="cursor:pointer"><input type="file" accept="image/*,.pdf,.jpg,.jpeg,.png" style="display:none" onchange="uploadDoc('${empKey}','doc_pan',this.files[0])"><span class="btn-ghost" style="display:inline-block;padding:8px 14px;font-size:.6rem;min-width:auto">◇ Upload File</span></label>
+</div>`}
+</div>
+</div>
+</div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">Remuneration History</div>
 ${remRows?`<div style="overflow-x:auto"><table class="remun-table"><thead><tr><th>Month</th><th>Basic</th><th>HRA</th><th>OT</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Slip</th></tr></thead><tbody>${remRows}</tbody></table></div>`:'<div style="font-size:.82rem;color:var(--text3);padding:8px 0">No salary records yet.</div>'}
 </div>
@@ -577,8 +605,54 @@ function backToList(p){if(p==='onboarding'){$el('empDetailView').style.display='
 
 async function addNote(ek){const ta=document.getElementById('newNote_'+ek);const txt=ta.value.trim();if(!txt)return;const e=_employees[ek];
 const notes=[...(e.notes||[]),{text:txt,ts:new Date().toISOString()}];await window.dbUpdate('employees/'+ek,{notes});showToast('Note added');openEmpDetail(ek,_detailPanel);}
-async function cycleEmpStatus(ek){const e=_employees[ek];const sts=['Active','Resigned','Terminated'];const cur=e.status||'Active';const next=sts[(sts.indexOf(cur)+1)%sts.length];
-await window.dbUpdate('employees/'+ek,{status:next,last_working_day:next!=='Active'?new Date().toISOString().slice(0,10):''});showToast('Status → '+next);openEmpDetail(ek,_detailPanel);}
+async function changeEmpStatus(ek,newStatus){
+await window.dbUpdate('employees/'+ek,{status:newStatus,last_working_day:newStatus!=='Active'&&newStatus!=='Probation'?new Date().toISOString().slice(0,10):''});
+showToast('Status → '+newStatus);openEmpDetail(ek,_detailPanel);}
+
+// ─── DOCUMENT UPLOAD (Camera + File) ────────────────
+async function uploadDoc(empKey,field,file){
+if(!file)return;
+showToast('Uploading...');
+try{
+  // Compress images before storing
+  if(file.type.startsWith('image/')){
+    const dataUrl=await compressImage(file,1200,0.7);
+    await window.dbUpdate('employees/'+empKey,{[field]:dataUrl});
+  }else{
+    // PDF — store as base64 data URL
+    const b64=await fileToBase64Full(file);
+    await window.dbUpdate('employees/'+empKey,{[field]:b64});
+  }
+  showToast('Document uploaded');
+  openEmpDetail(empKey,_detailPanel);
+}catch(err){showToast('Upload failed: '+err.message);}}
+
+function compressImage(file,maxW,quality){
+return new Promise((res,rej)=>{
+  const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    URL.revokeObjectURL(url);
+    let w=img.width,h=img.height;
+    if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);
+    res(c.toDataURL('image/jpeg',quality));
+  };
+  img.onerror=()=>rej(new Error('Image load failed'));
+  img.src=url;
+});}
+
+function fileToBase64Full(file){
+return new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=()=>res(r.result);
+  r.onerror=()=>rej(new Error('File read failed'));
+  r.readAsDataURL(file);
+});}
+
+async function removeDoc(empKey,field){
+await window.dbUpdate('employees/'+empKey,{[field]:null});
+showToast('Document removed');openEmpDetail(empKey,_detailPanel);}
 
 // ─── EDIT PROFILE ───────────────────────────────────
 function openEditModal(ek){const e=_employees[ek];if(!e)return;
