@@ -241,7 +241,7 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 </aside>
 <main class="main">
 <!-- ONBOARDING -->
-<div class="panel active" id="panel-onboarding">
+<div class="panel" id="panel-onboarding">
 <div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Onboarding</div><div class="page-rule"></div></div>
 <div class="tabs-wrap">
 <button class="tab-btn active" onclick="showOTab('scan',this)">◈ Scan Resume</button>
@@ -601,7 +601,7 @@ window.dbUpdate=async(p,d)=>{if(!window._db)return false;try{await update(ref(wi
 
 <script>
 const USERS={'hr@heebeecoffee.com':'1234','gavish@heebeecoffee.com':'0000','nitigya@heebeecoffee.com':'1111'};
-function doLogin(){const e=document.getElementById('loginEmail').value.trim().toLowerCase(),p=document.getElementById('loginPin').value.trim();if(USERS[e]&&USERS[e]===p){sessionStorage.setItem('hb_hr_user',e);document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}else{document.getElementById('loginErr').textContent='Invalid credentials';}}
+function doLogin(){const e=document.getElementById('loginEmail').value.trim().toLowerCase(),p=document.getElementById('loginPin').value.trim();if(USERS[e]&&USERS[e]===p){sessionStorage.setItem('hb_hr_user',e);document.getElementById('loginWrap').style.display='none';document.getElementById('appLayout').style.display='flex';showPanel('onboarding',document.querySelectorAll('.nav-item')[0]);loadSettings();renderDirectory();renderEmployeeList();renderAllEmployees();}else{document.getElementById('loginErr').textContent='Invalid credentials';}}
 document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function doLogout(){sessionStorage.removeItem('hb_hr_user');document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
 function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
@@ -2037,6 +2037,7 @@ const u=sessionStorage.getItem('hb_hr_user');
 if(u&&USERS[u]){
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('appLayout').style.display='flex';
+  showPanel('onboarding',document.querySelectorAll('.nav-item')[0]);
   waitForFirebaseAndBoot();
 }
 updateBioUI();
