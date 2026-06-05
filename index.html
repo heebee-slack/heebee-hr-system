@@ -174,9 +174,8 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 .save-btn:hover{opacity:.85}
 .toast{position:fixed;bottom:32px;right:32px;background:var(--btn-bg);color:var(--btn-fg);padding:12px 20px;border-radius:12px;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;z-index:9999;animation:toastIn .3s ease;box-shadow:var(--shadow2)}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.panel{display:none}
-.panel.active{display:block;animation:panelReveal .5s cubic-bezier(.4,0,.2,1) forwards}
-@keyframes panelReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.panel{display:none;opacity:0}
+.panel.active{display:block;opacity:1}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
 .empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
 .empty-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase}
