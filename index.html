@@ -726,7 +726,19 @@ function $(id){return document.getElementById(id)?.value?.trim()||'';}
 async function getNextEmpId(outlet){const conf=await window.dbGet('config')||{};const k='last_id_'+outlet;const last=conf[k]||0;const next=last+1;await window.dbSet('config/'+k,next);return`HB-${outlet}-${String(next).padStart(3,'0')}`;}
 
 // ─── AI SALARY CALCULATOR ────────────────────────────
-function getGovtConfig(){return{minWage:{Unskilled:parseInt(document.getElementById('govtMinUnskilled')?.value||13486),['Semi-Skilled']:parseInt(document.getElementById('govtMinSemiSkilled')?.value||14383),Skilled:parseInt(document.getElementById('govtMinSkilled')?.value||15414),['Highly Skilled']:parseInt(document.getElementById('govtMinHighlySkilled')?.value||16601)},epfCeiling:parseInt(document.getElementById('govtEPFCeiling')?.value||15000),epfEmp:parseFloat(document.getElementById('govtEPFEmp')?.value||12),hraPercent:parseFloat(document.getElementById('govtHRAPercent')?.value||20),mealAllowance:parseInt(document.getElementById('govtMealAllowance')?.value||1500),dearanceAllowance:parseInt(document.getElementById('govtDearanceAllowance')?.value||500),esiThreshold:parseInt(document.getElementById('govtESIThreshold')?.value||21000),profTax:parseInt(document.getElementById('govtProfTax')?.value||200)};}
+function getGovtConfig(){return{minWage:{Unskilled:parseInt(document.getElementById('govtMinUnskilled')?.value||13486),['Semi-Skilled']:parseInt(document.getElementById('govtMinSemiSkilled')?.value||14383),Skilled:parseInt(document.getElementById('govtMinSkilled')?.value||15414),['Highly Skilled']:parseInt(document.getElementById('govtMinHighlySkilled')?.value||16601)},epfCeiling:parseInt(document.getElementById('govtEPFCeiling')?.value||15000),epfEmp:parseFloat(document.getElementById('govtEPFEmp')?.value||12),hraPercent:parseFloat(document.getElementById('govtHRAPercent')?.value||20),mealAllowance:parseInt(document.getElementById('govtMealAllowance')?.value||1500),dearanceAllowance:parseInt(document.getElementById('govtDearanceAllowance')?.value||500),esiThreshold:parseInt(document.getElementById('govtESIThreshold')?.value||21000),profTax:parseInt(document.getElementById('govtProfTax')?.value||200);};}
+
+function renderSalaryCompliance(emp){const cfg=getGovtConfig();const ctc=parseInt(emp.ctc)||0;const basic=parseInt(emp.basic)||0;const cat=emp.labor_category||'—';
+const minWages=cfg.minWage;const allMins=Object.values(minWages);const minBasic=Math.min(...allMins);const maxBasic=Math.max(...allMins);
+let status='',color='';if(basic<minBasic){status='⚠️ BELOW MINIMUM';color='#ef4444';}else if(basic>=minBasic&&basic<maxBasic){status='✓ Meets Minimum';color='#10b981';}else{status='✓ Above Minimum';color='#10b981';}
+const allowances=((parseInt(emp.hra)||0)+(parseInt(emp.meal_allowance)||0)+(parseInt(emp.dearance_allowance)||0)+(parseInt(emp.spl_allowance)||0));const allowPct=(allowances/ctc)*100;
+const issues=[];if(basic<minBasic)issues.push(`Basic ₹${basic.toLocaleString('en-IN')} is below minimum ₹${minBasic.toLocaleString('en-IN')}`);if(basic<(ctc*0.5))issues.push(`Basic ${(basic/ctc*100).toFixed(0)}% < 50% of CTC (law requires ≥50%)`);
+return `<div style="margin-bottom:12px;padding:12px;background:${color==='#10b981'?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)'};border:1px solid ${color==='#10b981'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'};border-radius:12px;color:${color};font-weight:600;font-size:.85rem">
+${status}${basic<minBasic?` (Basic ₹${basic.toLocaleString('en-IN')} < Min ₹${minBasic.toLocaleString('en-IN')})`:''}
+${issues.length>0?`<div style="margin-top:8px;font-weight:400;font-size:.78rem;color:${color};line-height:1.6">${issues.map(i=>'• '+i).join('<br>')}</div>`:''}
+${basic<minBasic?`<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:.65rem;min-width:auto;border-color:${color}" onclick="openEditModal('${Object.entries(_employees).find(kv=>kv[1]===emp)?.[0]}')">◈ Update Salary</button></div>`:''}
+</div>`;}
+
 
 function calculateSalaryStructure(){const cat=document.getElementById('h_category').value;const desired=parseInt(document.getElementById('h_desiredSalary').value);
 const mealAllow=parseInt(document.getElementById('h_mealAmount').value)||0;const daAllow=parseInt(document.getElementById('h_daAmount').value)||0;
@@ -800,8 +812,10 @@ ${wa?`<a href="https://wa.me/${wa.startsWith('91')?'':'91'}${wa}" target="_blank
 ${dv('Phone',e.phone)}${dv('Email',e.email)}${dv('Address',e.address)}${dv('Father',e.father_name)}
 ${dv('Joining',e.joining_date)}${dv('Last Working Day',e.last_working_day||'Active')}${dv('DOB',e.dob)}${dv('Department',e.department)}
 </div></div>
-<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Salary Structure</div><div class="detail-grid">
-${dv('CTC / Month','₹'+N(e.ctc))}${dv('Basic','₹'+N(e.basic))}${dv('HRA','₹'+N(e.hra))}${dv('Conv','₹'+N(e.conv))}${dv('Spl Allowance','₹'+N(e.spl_allowance))}${dv('Gross Rate','₹'+N(e.gross_rate))}
+<div class="glass-card" style="margin-bottom:14px"><div class="section-title">Salary Structure & Compliance</div>
+${renderSalaryCompliance(e)}
+<div class="detail-grid">
+${dv('CTC / Month','₹'+N(e.ctc))}${dv('Basic','₹'+N(e.basic))}${dv('HRA','₹'+N(e.hra))}${dv('Meal Allow','₹'+N(e.meal_allowance))}${dv('Dearance Allow','₹'+N(e.dearance_allowance))}${dv('Spl Allowance','₹'+N(e.spl_allowance))}
 </div></div>
 <div class="glass-card" style="margin-bottom:14px"><div class="section-title">KYC & Banking</div><div class="detail-grid">
 ${dv('Aadhaar',e.aadhaar?e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3'):'')}${dv('PAN',e.pan)}${dv('Bank',e.bank_name)}${dv('Account',e.account_no)}${dv('IFSC',e.ifsc)}${dv('PF No',e.pf_no)}${dv('ESI No',e.esi_no)}${dv('UAN',e.uan_no)}
