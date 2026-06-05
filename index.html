@@ -373,6 +373,20 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div style="display:flex;gap:8px"><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="calc_mealPolicy" value="add" checked> Add to Salary</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="calc_mealPolicy" value="deduct"> Deduct from Salary</label></div>
 </div>
 
+<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:10px">STATUTORY DEDUCTIONS</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px">
+<div><div style="font-size:.8rem;font-weight:600">Provident Fund (EPF)</div><div style="font-family:Space Mono,monospace;font-size:.42rem;color:var(--text3);margin-top:2px">12% of Basic (max ₹1,800)</div></div>
+<label class="toggle-switch"><input type="checkbox" id="calc_pfToggle" checked onchange="calculateSalaryStructureTab()"><span class="toggle-track"></span></label>
+</div>
+<div id="calc_esiBox" style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px">
+<div style="font-size:.8rem;font-weight:600">ESI</div>
+<div id="calc_esiStatus" style="font-family:Space Mono,monospace;font-size:.42rem;color:var(--text3);margin-top:2px">0.75% of Gross</div>
+</div>
+</div>
+</div>
+
 <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="calculateSalaryStructureTab()">🤖 Calculate Structure</button>
 
 <div id="calc_result" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-top:12px;font-size:.82rem;color:var(--text2);line-height:1.8">
@@ -718,6 +732,19 @@ document.getElementById('hireModal').innerHTML=`
 <div><label class="settings-label" style="margin-bottom:0">Meal Allowance Policy</label><div style="font-size:.7rem;color:var(--text3);margin-top:2px">Include in allowances?</div></div>
 <div style="display:flex;gap:8px"><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="h_mealPolicy" value="add" checked> Add to Salary</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="h_mealPolicy" value="deduct"> Deduct from Salary</label></div>
 </div>
+<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:10px">STATUTORY DEDUCTIONS</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px">
+<div><div style="font-size:.8rem;font-weight:600">Provident Fund (EPF)</div><div style="font-family:Space Mono,monospace;font-size:.42rem;color:var(--text3);margin-top:2px">12% of Basic (max ₹1,800)</div></div>
+<label class="toggle-switch"><input type="checkbox" id="h_pfToggle" checked><span class="toggle-track"></span></label>
+</div>
+<div id="h_esiBox" style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px">
+<div style="font-size:.8rem;font-weight:600">ESI</div>
+<div id="h_esiStatus" style="font-family:Space Mono,monospace;font-size:.42rem;color:var(--text3);margin-top:2px">Auto-calculated</div>
+</div>
+</div>
+</div>
 
 <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="calculateSalaryStructure()">🤖 AI Calculate Structure</button>
 
@@ -815,37 +842,70 @@ ${!validate.noFraud?`<div style="margin-bottom:8px;padding:8px;background:rgba(2
 document.getElementById('salaryCalculationResult').innerHTML=checks;document.getElementById('salaryCalculationResult').style.display='block';
 if(!isCompliant){showToast('⚠ Structure has compliance issues (see red boxes above)');}}
 
-function calculateSalaryStructureTab(){const cat=document.getElementById('calc_category').value;const desired=parseInt(document.getElementById('calc_desiredSalary').value);
-const mealAllow=parseInt(document.getElementById('calc_mealAmount').value)||0;const daAllow=parseInt(document.getElementById('calc_daAmount').value)||0;const mealPolicy=document.querySelector('input[name="calc_mealPolicy"]:checked')?.value||'add';
+function calcDeductions(basic,gross,pfOn,cfg){
+const epfWage=Math.min(basic,cfg.epfCeiling||15000);
+const pfDeduction=pfOn?Math.round(epfWage*(cfg.epfEmp||12)/100):0;
+const esiApplicable=gross<=(cfg.esiThreshold||21000);
+const esiDeduction=esiApplicable?Math.round(gross*(parseFloat(localStorage.getItem('hb_esi_emp_pct')||0.75))/100):0;
+const profTax=cfg.profTax||200;
+return{pf:pfDeduction,esi:esiDeduction,profTax,esiApplicable,total:pfDeduction+esiDeduction+profTax};
+}
+
+function updateCalcESIStatus(gross,cfg){
+const el=document.getElementById('calc_esiStatus');if(!el)return;
+const esiApplicable=gross<=(cfg.esiThreshold||21000);
+if(esiApplicable){el.textContent='0.75% of Gross — APPLICABLE';el.style.color='#10b981';}
+else{el.textContent='AUTO OFF (Salary > ₹'+((cfg.esiThreshold||21000).toLocaleString('en-IN'))+')';el.style.color='#ef4444';}
+}
+
+function calculateSalaryStructureTab(){
+const cat=document.getElementById('calc_category').value;
+const desired=parseInt(document.getElementById('calc_desiredSalary').value);
+const mealAllow=parseInt(document.getElementById('calc_mealAmount').value)||0;
+const daAllow=parseInt(document.getElementById('calc_daAmount').value)||0;
+const mealPolicy=document.querySelector('input[name="calc_mealPolicy"]:checked')?.value||'add';
+const pfOn=document.getElementById('calc_pfToggle')?.checked!==false;
 if(!desired||desired<5000){showToast('Enter valid salary ≥ ₹5,000');return;}
 const cfg=getGovtConfig();const minBasic=cfg.minWage[cat]||13486;const hraRate=cfg.hraPercent/100;
 const basic=Math.max(minBasic,Math.ceil(desired*0.5));const hra=Math.round(basic*hraRate);const splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
 const totalAllowances=hra+splAllow+mealAllow+daAllow;const allowancePercent=(totalAllowances/desired)*100;
 const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraLimit:hra<=(basic*0.4),allowanceLimit:totalAllowances<=(desired*0.5),noFraud:splAllow<(basic*2)};
 const isCompliant=Object.values(validate).every(v=>v);
-const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,mealPolicy:mealPolicy,isCompliant:isCompliant};
+const ded=calcDeductions(basic,desired,pfOn,cfg);
+updateCalcESIStatus(desired,cfg);
 const mealPolicyLabel2=mealPolicy==='add'?'➕ ADDED TO':'➖ DEDUCTED FROM';
 const bgColor2=isCompliant?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)';
 const borderColor2=isCompliant?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)';
 const textColor2=isCompliant?'#10b981':'#ef4444';
 const statusText2=isCompliant?'✓ FULLY COMPLIANT — All Guardrails Met':'✗ NON-COMPLIANT — Issues Below';
-const checks=`<div style="margin-bottom:12px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
-<div style="margin-bottom:8px"><b>Salary Structure:</b></div>
-<div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
-<div style="margin-left:16px;margin-bottom:8px;border-bottom:1px solid var(--border2);padding-bottom:8px">
-<div style="margin-bottom:4px">Allowances (Total ${allowancePercent.toFixed(1)}% of gross):</div>
-<div style="margin-left:8px;font-size:.75rem">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
-${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600;font-size:.7rem;background:var(--surface2);padding:2px 6px;border-radius:4px">${mealPolicyLabel2} SALARY</span></div>`:''}
-${daAllow?`<div style="margin-left:8px;font-size:.75rem">Dearance Allowance: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
-<div style="margin-left:8px;font-size:.75rem">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
+const netPay=desired-ded.total;
+const checks=`
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+<div>
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px">EARNINGS</div>
+<div style="margin-bottom:4px">Basic: <b>₹${basic.toLocaleString('en-IN')}</b> <span style="font-size:.72rem;color:var(--text3)">(${(basic/desired*100).toFixed(1)}%)</span></div>
+<div style="margin-bottom:4px">HRA (${cfg.hraPercent}%): ₹${hra.toLocaleString('en-IN')}</div>
+${mealAllow?`<div style="margin-bottom:4px">Meal: ₹${mealAllow.toLocaleString('en-IN')} <span style="font-size:.65rem;color:var(--gold)">[${mealPolicyLabel2}]</span></div>`:''}
+${daAllow?`<div style="margin-bottom:4px">DA: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
+<div style="margin-bottom:8px">Spl Allow: ₹${splAllow.toLocaleString('en-IN')}</div>
+<div style="font-weight:700;color:var(--gold);font-size:1rem">Gross: ₹${desired.toLocaleString('en-IN')}</div>
 </div>
-<div style="margin-left:16px;margin-bottom:12px;font-weight:600;color:var(--gold);font-size:1.1rem">Total: ₹${desired.toLocaleString('en-IN')}</div>
-<div style="margin-bottom:12px;padding:10px;background:${bgColor2};border-radius:8px;border:1px solid ${borderColor2};color:${textColor2};font-weight:600;text-align:center">
-${statusText2}</div>
-${!validate.basic?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Basic Too Low:</b> Must be ≥ ₹${minBasic.toLocaleString('en-IN')} (govt minimum)</div>`:''}
-${!validate.fiftyPct?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Basic vs Allowances:</b> Basic must be ≥ 50% of gross</div>`:''}
-${!validate.allowanceLimit?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Allowances Too High:</b> Cannot exceed 50% of salary</div>`:''}
-${!validate.noFraud?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Fraud Alert:</b> Special allowance too large relative to basic</div>`:''}`;
+<div>
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:#ef4444;margin-bottom:8px">DEDUCTIONS</div>
+<div style="margin-bottom:4px">EPF (EE): ${pfOn?'₹'+ded.pf.toLocaleString('en-IN'):'<span style="color:var(--text3)">OPTED OUT</span>'}</div>
+<div style="margin-bottom:4px">ESI (EE): ${ded.esi>0?'₹'+ded.esi.toLocaleString('en-IN'):'<span style="color:var(--text3)">N/A (above limit)</span>'}</div>
+<div style="margin-bottom:8px">Prof Tax: ₹${ded.profTax.toLocaleString('en-IN')}</div>
+<div style="font-weight:700;color:#ef4444;font-size:.9rem">Total Ded: ₹${ded.total.toLocaleString('en-IN')}</div>
+</div>
+</div>
+<div style="padding:12px;background:var(--surface2);border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-family:Space Mono,monospace;font-size:.5rem;letter-spacing:2px;color:var(--text3)">NET IN-HAND</div>
+<div style="font-size:1.3rem;font-weight:700;color:var(--gold)">₹${netPay.toLocaleString('en-IN')}</div>
+</div>
+<div style="margin-bottom:12px;padding:10px;background:${bgColor2};border-radius:8px;border:1px solid ${borderColor2};color:${textColor2};font-weight:600;text-align:center">${statusText2}</div>
+${!validate.basic?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Basic Too Low:</b> Must be ≥ ₹${minBasic.toLocaleString('en-IN')}</div>`:''}
+${!validate.allowanceLimit?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Allowances Too High:</b> Cannot exceed 50% of salary</div>`:''}
+${!validate.noFraud?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Fraud Alert:</b> Special allowance too large relative to basic</div>`:''}`;
 document.getElementById('calc_result').innerHTML=checks;document.getElementById('calc_result').style.display='block';}
 
 function saveGovtParams(){const configs={govtMinUnskilled:document.getElementById('govtMinUnskilled').value,govtMinSemiSkilled:document.getElementById('govtMinSemiSkilled').value,govtMinSkilled:document.getElementById('govtMinSkilled').value,govtMinHighlySkilled:document.getElementById('govtMinHighlySkilled').value,govtEPFCeiling:document.getElementById('govtEPFCeiling').value,govtEPFEmp:document.getElementById('govtEPFEmp').value,govtEPFEr:document.getElementById('govtEPFEr').value,govtESIThreshold:document.getElementById('govtESIThreshold').value,govtESIEmp:document.getElementById('govtESIEmp').value,govtESIEr:document.getElementById('govtESIEr').value,govtProfTax:document.getElementById('govtProfTax').value,govtHRAPercent:document.getElementById('govtHRAPercent').value,govtMealAllowance:document.getElementById('govtMealAllowance').value,govtDearanceAllowance:document.getElementById('govtDearanceAllowance').value};
