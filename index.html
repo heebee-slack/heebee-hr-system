@@ -230,7 +230,8 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div class="nav-item active" onclick="showPanel('onboarding',this)"><span class="nav-icon">◈</span><span class="nav-label">Onboarding</span></div>
 <div class="nav-item" onclick="showPanel('payroll',this)"><span class="nav-icon">◇</span><span class="nav-label">Payroll</span></div>
 <div class="nav-item" onclick="showPanel('employees',this)"><span class="nav-icon">◎</span><span class="nav-label">Employees</span></div>
-<div class="nav-item" onclick="showPanel('reports',this)" style="opacity:.5"><span class="nav-icon">✦</span><span class="nav-label">Reports</span><span class="nav-soon">Soon</span></div>
+<div class="nav-item" onclick="showPanel('calculator',this)"><span class="nav-icon">✦</span><span class="nav-label">Calc</span></div>
+<div class="nav-item" onclick="showPanel('reports',this)" style="opacity:.5"><span class="nav-icon">◇</span><span class="nav-label">Reports</span><span class="nav-soon">Soon</span></div>
 <div class="nav-item" onclick="showPanel('settings',this)"><span class="nav-icon">◉</span><span class="nav-label">Settings</span></div>
 </nav>
 <div class="sidebar-footer">
@@ -349,6 +350,37 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 </div>
 <div id="allEmpDetail" style="display:none"></div>
 </div>
+<!-- SALARY CALCULATOR -->
+<div class="panel" id="panel-calculator">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Salary Calculator</div><div class="page-rule"></div></div>
+<div class="glass-card" style="max-width:700px">
+<div class="settings-section">
+<div class="section-title">AI Salary Calculator</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:16px">Calculate compliant salary structure for any role. Respects all govt minimum wage rules.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Labor Category</label><select id="calc_category"><option value="Unskilled">Unskilled</option><option value="Semi-Skilled">Semi-Skilled</option><option value="Skilled">Skilled</option><option value="Highly Skilled">Highly Skilled</option></select></div>
+<div><label class="settings-label">Desired Total Salary (₹)</label><input id="calc_desiredSalary" type="number" placeholder="28000" style="font-weight:600;font-size:.9rem"></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Meal Allowance (₹)</label><input id="calc_mealAmount" type="number" placeholder="1500" style="text-align:center"></div>
+<div><label class="settings-label">Dearance Allow (₹)</label><input id="calc_daAmount" type="number" placeholder="500" style="text-align:center"></div>
+</div>
+
+<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
+<div><label class="settings-label">Meal Allowance Policy</label></div>
+<div style="display:flex;gap:8px"><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="calc_mealPolicy" value="add" checked> Add to Salary</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="calc_mealPolicy" value="deduct"> Deduct from Salary</label></div>
+</div>
+
+<button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="calculateSalaryStructureTab()">🤖 Calculate Structure</button>
+
+<div id="calc_result" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-top:12px;font-size:.82rem;color:var(--text2);line-height:1.8">
+</div>
+</div>
+</div>
+</div>
+
 <!-- REPORTS -->
 <div class="panel" id="panel-reports">
 <div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">Reports</div><div class="page-rule"></div></div>
@@ -678,8 +710,13 @@ document.getElementById('hireModal').innerHTML=`
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-<div><label class="settings-label">Meal Allowance (₹) [in allowances]</label><input id="h_mealAmount" type="number" placeholder="1500" style="text-align:center"></div>
-<div><label class="settings-label">Dearance Allow (₹) [in allowances]</label><input id="h_daAmount" type="number" placeholder="500" style="text-align:center"></div>
+<div><label class="settings-label">Meal Allowance (₹)</label><input id="h_mealAmount" type="number" placeholder="1500" style="text-align:center"></div>
+<div><label class="settings-label">Dearance Allow (₹)</label><input id="h_daAmount" type="number" placeholder="500" style="text-align:center"></div>
+</div>
+
+<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
+<div><label class="settings-label" style="margin-bottom:0">Meal Allowance Policy</label><div style="font-size:.7rem;color:var(--text3);margin-top:2px">Include in allowances?</div></div>
+<div style="display:flex;gap:8px"><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="h_mealPolicy" value="add" checked> Add to Salary</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="radio" name="h_mealPolicy" value="deduct"> Deduct from Salary</label></div>
 </div>
 
 <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="calculateSalaryStructure()">🤖 AI Calculate Structure</button>
@@ -751,13 +788,14 @@ const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraLimit:hra
 const isCompliant=Object.values(validate).every(v=>v);
 const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,isCompliant:isCompliant,validation:validate,desiredSalary:desired};
 window._lastSalaryCalculation=result;
+const mealPolicy=document.querySelector('input[name="h_mealPolicy"]:checked')?.value||'add';
 const checks=`<div style="margin-bottom:8px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
 <div style="margin-bottom:8px"><b>Salary Structure:</b></div>
 <div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
 <div style="margin-left:16px;margin-bottom:8px;border-bottom:1px solid var(--border2);padding-bottom:8px">
 <div style="margin-bottom:4px">Allowances (Total ${allowancePercent.toFixed(1)}% of gross):</div>
 <div style="margin-left:8px;font-size:.75rem">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
-${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')}</div>`:''}
+${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600">[${mealPolicy==='add'?'ADDED':'DEDUCTED'}]</span></div>`:''}
 ${daAllow?`<div style="margin-left:8px;font-size:.75rem">Dearance Allowance: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
 <div style="margin-left:8px;font-size:.75rem">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
 </div>
@@ -770,6 +808,34 @@ ${!validate.allowanceLimit?`<div style="margin-bottom:8px;padding:8px;background
 ${!validate.noFraud?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Fraud Alert:</b> Special allowance suspiciously large relative to basic</div>`:''}`;
 document.getElementById('salaryCalculationResult').innerHTML=checks;document.getElementById('salaryCalculationResult').style.display='block';
 if(!isCompliant){showToast('⚠ Structure has compliance issues (see red boxes above)');}}
+
+function calculateSalaryStructureTab(){const cat=document.getElementById('calc_category').value;const desired=parseInt(document.getElementById('calc_desiredSalary').value);
+const mealAllow=parseInt(document.getElementById('calc_mealAmount').value)||0;const daAllow=parseInt(document.getElementById('calc_daAmount').value)||0;const mealPolicy=document.querySelector('input[name="calc_mealPolicy"]:checked')?.value||'add';
+if(!desired||desired<5000){showToast('Enter valid salary ≥ ₹5,000');return;}
+const cfg=getGovtConfig();const minBasic=cfg.minWage[cat]||13486;const hraRate=cfg.hraPercent/100;
+const basic=Math.max(minBasic,Math.ceil(desired*0.5));const hra=Math.round(basic*hraRate);const splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
+const totalAllowances=hra+splAllow+mealAllow+daAllow;const allowancePercent=(totalAllowances/desired)*100;
+const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraLimit:hra<=(basic*0.4),allowanceLimit:totalAllowances<=(desired*0.5),noFraud:splAllow<(basic*2)};
+const isCompliant=Object.values(validate).every(v=>v);
+const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,mealPolicy:mealPolicy,isCompliant:isCompliant};
+const checks=`<div style="margin-bottom:12px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
+<div style="margin-bottom:8px"><b>Salary Structure:</b></div>
+<div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
+<div style="margin-left:16px;margin-bottom:8px;border-bottom:1px solid var(--border2);padding-bottom:8px">
+<div style="margin-bottom:4px">Allowances (Total ${allowancePercent.toFixed(1)}% of gross):</div>
+<div style="margin-left:8px;font-size:.75rem">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
+${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600;font-size:.7rem;background:var(--surface2);padding:2px 6px;border-radius:4px">${mealPolicy==='add'?'➕ ADDED TO':'➖ DEDUCTED FROM'} SALARY</span></div>`:''}
+${daAllow?`<div style="margin-left:8px;font-size:.75rem">Dearance Allowance: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
+<div style="margin-left:8px;font-size:.75rem">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
+</div>
+<div style="margin-left:16px;margin-bottom:12px;font-weight:600;color:var(--gold);font-size:1.1rem">Total: ₹${desired.toLocaleString('en-IN')}</div>
+<div style="margin-bottom:12px;padding:10px;background:${isCompliant?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};border-radius:8px;border:1px solid ${isCompliant?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)'};color:${isCompliant?'#10b981':'#ef4444'};font-weight:600;text-align:center">
+${isCompliant?'✓ FULLY COMPLIANT — All Guardrails Met':'✗ NON-COMPLIANT — Issues Below'}</div>
+${!validate.basic?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Basic Too Low:</b> Must be ≥ ₹${minBasic.toLocaleString('en-IN')} (govt minimum)</div>`:''}
+${!validate.fiftyPct?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Basic vs Allowances:</b> Basic must be ≥ 50% of gross</div>`:''}
+${!validate.allowanceLimit?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Allowances Too High:</b> Cannot exceed 50% of salary</div>`:''}
+${!validate.noFraud?`<div style="margin-bottom:8px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem"><b>✗ Fraud Alert:</b> Special allowance too large relative to basic</div>`:''}`;
+document.getElementById('calc_result').innerHTML=checks;document.getElementById('calc_result').style.display='block';}
 
 function saveGovtParams(){const configs={govtMinUnskilled:document.getElementById('govtMinUnskilled').value,govtMinSemiSkilled:document.getElementById('govtMinSemiSkilled').value,govtMinSkilled:document.getElementById('govtMinSkilled').value,govtMinHighlySkilled:document.getElementById('govtMinHighlySkilled').value,govtEPFCeiling:document.getElementById('govtEPFCeiling').value,govtEPFEmp:document.getElementById('govtEPFEmp').value,govtEPFEr:document.getElementById('govtEPFEr').value,govtESIThreshold:document.getElementById('govtESIThreshold').value,govtESIEmp:document.getElementById('govtESIEmp').value,govtESIEr:document.getElementById('govtESIEr').value,govtProfTax:document.getElementById('govtProfTax').value,govtHRAPercent:document.getElementById('govtHRAPercent').value,govtMealAllowance:document.getElementById('govtMealAllowance').value,govtDearanceAllowance:document.getElementById('govtDearanceAllowance').value};
 localStorage.setItem('heebee_govt_config',JSON.stringify(configs));document.getElementById('govtParamsStatus').textContent='✓ Saved';setTimeout(()=>document.getElementById('govtParamsStatus').textContent='',2000);}
