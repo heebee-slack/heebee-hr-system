@@ -838,39 +838,57 @@ function calculateSalaryStructure(){
   const mealPolicy=document.querySelector('input[name="h_mealPolicy"]:checked')?.value||'add';
   if(!desired||desired<1000){showToast('Enter a valid desired salary');return;}
   const cfg=getGovtConfig();
-  const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,cfg);
+  const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg);
   if(!r.error){window._lastSalaryCalculation={basic:r.basic,hra:r.hra,spl_allowance:r.splAllow,meal_allowance:r.mealAllow,dearance_allowance:r.daAllow,total:r.desired,category:cat,isCompliant:r.isCompliant,mealPolicy};}
   else{window._lastSalaryCalculation=null;}
   renderSalaryResult(r,pfOn,mealPolicy,cfg,'salaryCalculationResult');
 }
 
 // ─── CORE SALARY COMPUTATION ENGINE ──────────────────
-function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,cfg){
+// mealPolicy:
+//   'add'    = meal is EXTRA on top of desired (employer pays desired + meal separately)
+//              desired = base salary structure, meal doesn't reduce spl allow
+//              gross = desired + meal
+//   'deduct' = meal is INCLUDED within desired (employer pays desired total, meal part of it)
+//              desired = full CTC, meal reduces spl allow
+//              gross = desired
+function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg){
   const minBasic=cfg.minWage[cat]||13486;
-  // BLOCK: desired below govt minimum basic
-  if(desired<minBasic)return{error:true,errorMsg:'Minimum salary for '+cat+' is ₹'+minBasic.toLocaleString('en-IN')+' (govt minimum basic pay). Please enter at least ₹'+minBasic.toLocaleString('en-IN')+'.'};
-  // Basic = higher of: govt minimum OR 50% rule
+  if(desired<minBasic)return{error:true,errorMsg:'Minimum salary for '+cat+' is ₹'+minBasic.toLocaleString('en-IN')+'. Please enter at least ₹'+minBasic.toLocaleString('en-IN')+'.'};
+  // Basic = higher of: govt minimum OR 50% rule (always on desired, the base)
   const basic=Math.max(minBasic,Math.ceil(desired*0.5));
-  // HRA: optional, 20% of basic — auto-kill if it doesn't fit
+  // HRA: optional, auto-kill if doesn't fit
   const hraCandidate=Math.round(basic*(cfg.hraPercent||20)/100);
-  const hraFits=(desired-basic-hraCandidate-mealAllow-daAllow)>=0;
+  // HRA fit check: for 'add', meal not counted in base; for 'deduct', meal within base
+  const hraFitCheck=mealPolicy==='add'?(desired-basic-hraCandidate-daAllow):(desired-basic-hraCandidate-mealAllow-daAllow);
   let hra=0,hraKilled=false;
-  if(hraWanted){if(hraFits){hra=hraCandidate;}else{hraKilled=true;hra=0;}}
-  // Special allowance absorbs the remainder
-  const splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
-  // Deductions
+  if(hraWanted){if(hraFitCheck>=0){hra=hraCandidate;}else{hraKilled=true;hra=0;}}
+  // Special allowance and gross based on meal policy
+  let gross,splAllow;
+  if(mealPolicy==='add'){
+    // Meal is ADDITIONAL — structure base salary without meal, add meal on top
+    splAllow=Math.max(0,desired-basic-hra-daAllow);
+    gross=desired+mealAllow;
+  }else{
+    // Meal is INCLUDED — meal comes out of the desired total
+    splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
+    gross=desired;
+  }
+  // Deductions on gross
   const epfWage=Math.min(basic,cfg.epfCeiling||15000);
   const pf=pfOn?Math.round(epfWage*(cfg.epfEmp||12)/100):0;
-  const esiApplicable=desired<=(cfg.esiThreshold||21000);
-  const esi=esiApplicable?Math.round(desired*0.0075):0;
+  const esiThreshold=cfg.esiThreshold||21000;
+  const esiApplicable=gross<=esiThreshold;
+  const esi=esiApplicable?Math.round(gross*0.0075):0;
   const profTax=cfg.profTax||200;
   const totalDed=pf+esi+profTax;
-  const netPay=desired-totalDed;
-  // Compliance
+  const netPay=gross-totalDed;
+  const esiThresholdStr=esiThreshold.toLocaleString('en-IN');
+  // Compliance (always against gross)
   const totalAllowances=hra+splAllow+mealAllow+daAllow;
-  const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraOk:hra===0||hra<=(basic*0.4),allowancesOk:totalAllowances<=(desired*0.5),noFraud:splAllow<(basic*2)};
+  const validate={basic:basic>=minBasic,fiftyPct:basic>=(gross*0.5),hraOk:hra===0||hra<=(basic*0.4),allowancesOk:totalAllowances<=(gross*0.5),noFraud:splAllow<(basic*2)};
   const isCompliant=Object.values(validate).every(v=>v);
-  return{basic,hra,splAllow,mealAllow,daAllow,desired,pf,esi,esiApplicable,profTax,totalDed,netPay,hraKilled,hraCandidate,minBasic,validate,isCompliant,error:false};
+  return{basic,hra,splAllow,mealAllow,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,error:false};
 }
 
 function renderSalaryResult(r,pfOn,mealPolicy,cfg,resultElId){
@@ -885,17 +903,17 @@ ${r.hraKilled?`<div style="margin-bottom:10px;padding:10px;background:rgba(245,1
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
 <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:14px">
 <div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:#10b981;margin-bottom:10px">EARNINGS</div>
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">Basic <span style="font-size:.65rem;color:var(--text3)">(${(r.basic/r.desired*100).toFixed(0)}%)</span></span><b>₹${r.basic.toLocaleString('en-IN')}</b></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">Basic <span style="font-size:.65rem;color:var(--text3)">(${(r.basic/r.gross*100).toFixed(0)}% of gross)</span></span><b>₹${r.basic.toLocaleString('en-IN')}</b></div>
 ${r.hra>0?`<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">HRA (${cfg.hraPercent||20}%)</span><span>₹${r.hra.toLocaleString('en-IN')}</span></div>`:`<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text3)">HRA</span><span style="color:var(--text3);font-size:.75rem">Not included</span></div>`}
 ${r.mealAllow>0?`<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">Meal Allow <span style="font-size:.6rem;color:var(--gold)">[${mpl}]</span></span><span>₹${r.mealAllow.toLocaleString('en-IN')}</span></div>`:''}
 ${r.daAllow>0?`<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">Dearance Allow</span><span>₹${r.daAllow.toLocaleString('en-IN')}</span></div>`:''}
 <div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-top:6px;border-top:1px solid var(--border2)"><span style="color:var(--text2)">Special Allow</span><span>₹${r.splAllow.toLocaleString('en-IN')}</span></div>
-<div style="display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;color:var(--gold)"><span>Gross Salary</span><span>₹${r.desired.toLocaleString('en-IN')}</span></div>
+<div style="display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;color:var(--gold)"><span>Gross Salary</span><span>₹${r.gross.toLocaleString('en-IN')}</span></div>
 </div>
 <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:14px">
 <div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:#ef4444;margin-bottom:10px">DEDUCTIONS</div>
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">EPF (Employee)</span><span>${pfOn?'₹'+r.pf.toLocaleString('en-IN'):'<span style="color:var(--text3);font-size:.75rem">Opted Out</span>'}</span></div>
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">ESI (0.75%)</span><span>${r.esiApplicable?'₹'+r.esi.toLocaleString('en-IN'):'<span style="color:var(--text3);font-size:.75rem">Auto OFF &gt;₹${(cfg.esiThreshold||21000).toLocaleString("en-IN")}</span>'}</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">ESI (0.75%)</span><span>${r.esiApplicable?'₹'+r.esi.toLocaleString('en-IN'):'<span style="color:var(--text3);font-size:.75rem">Auto OFF (Gross &gt; ₹'+r.esiThresholdStr+')</span>'}</span></div>
 <div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-top:6px;border-top:1px solid var(--border2)"><span style="color:var(--text2)">Professional Tax</span><span>₹${r.profTax.toLocaleString('en-IN')}</span></div>
 <div style="display:flex;justify-content:space-between;font-weight:700;color:#ef4444"><span>Total Deductions</span><span>₹${r.totalDed.toLocaleString('en-IN')}</span></div>
 </div>
@@ -935,7 +953,7 @@ function calculateSalaryStructureTab(){
   const mealPolicy=document.querySelector('input[name="calc_mealPolicy"]:checked')?.value||'add';
   if(!desired||desired<1000){showToast('Enter a valid desired salary');return;}
   const cfg=getGovtConfig();
-  const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,cfg);
+  const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg);
   // Update ESI status label
   const esiEl=document.getElementById('calc_esiStatus');
   if(esiEl&&!r.error){const lim=(cfg.esiThreshold||21000).toLocaleString('en-IN');esiEl.textContent=r.esiApplicable?'0.75% — Applicable':'Auto OFF (> ₹'+lim+')';esiEl.style.color=r.esiApplicable?'#10b981':'#ef4444';}
