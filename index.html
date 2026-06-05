@@ -367,6 +367,70 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <button class="save-btn" onclick="saveSettings()">Save & Connect</button>
 <div id="settingsStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
 </div>
+
+<div class="settings-section">
+<div class="section-title">Government Parameters (Updated as per law changes)</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:16px">Update these whenever Punjab govt announces changes to minimum wage or statutory thresholds.</p>
+
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">MINIMUM BASIC SALARY BY LABOR CATEGORY (Punjab)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Unskilled</label><input class="settings-input" type="number" id="govtMinUnskilled" placeholder="13486" style="font-weight:600;font-size:.9rem;text-align:center"></div>
+<div><label class="settings-label">Semi-Skilled</label><input class="settings-input" type="number" id="govtMinSemiSkilled" placeholder="14383" style="font-weight:600;font-size:.9rem;text-align:center"></div>
+<div><label class="settings-label">Skilled</label><input class="settings-input" type="number" id="govtMinSkilled" placeholder="15414" style="font-weight:600;font-size:.9rem;text-align:center"></div>
+<div><label class="settings-label">Highly Skilled</label><input class="settings-input" type="number" id="govtMinHighlySkilled" placeholder="16601" style="font-weight:600;font-size:.9rem;text-align:center"></div>
+</div>
+</div>
+
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">PROVIDENT FUND (EPF) - PF ACT 1952</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">EPF Wage Ceiling (₹)</label><input class="settings-input" type="number" id="govtEPFCeiling" placeholder="15000" style="text-align:center"></div>
+<div><label class="settings-label">EPF Employee %</label><input class="settings-input" type="number" id="govtEPFEmp" placeholder="12" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">EPF Employer %</label><input class="settings-input" type="number" id="govtEPFEr" placeholder="12" step="0.01" style="text-align:center"></div>
+</div>
+</div>
+
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">EMPLOYEES STATE INSURANCE (ESI) - ESI ACT 1948</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">ESI Gross Threshold (₹)</label><input class="settings-input" type="number" id="govtESIThreshold" placeholder="21000" style="text-align:center"></div>
+<div><label class="settings-label">ESI Employee %</label><input class="settings-input" type="number" id="govtESIEmp" placeholder="0.75" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">ESI Employer %</label><input class="settings-input" type="number" id="govtESIEr" placeholder="3.25" step="0.01" style="text-align:center"></div>
+</div>
+</div>
+
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">OTHER STATUTORY DEDUCTIONS</div>
+<div style="display:grid;grid-template-columns:1fr;gap:12px">
+<div><label class="settings-label">Professional Tax / Month (₹)</label><input class="settings-input" type="number" id="govtProfTax" placeholder="200" style="text-align:center"></div>
+<div><label class="settings-label">HRA % of Basic (Fixed)</label><input class="settings-input" type="number" id="govtHRAPercent" placeholder="20" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">Meal Allowance Default (₹)</label><input class="settings-input" type="number" id="govtMealAllowance" placeholder="1500" style="text-align:center"></div>
+<div><label class="settings-label">Dearance Allowance Default (₹)</label><input class="settings-input" type="number" id="govtDearanceAllowance" placeholder="500" style="text-align:center"></div>
+</div>
+</div>
+
+<button class="save-btn" onclick="saveGovtParams()">Save Government Parameters</button>
+<div id="govtParamsStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+</div>
+
+<div class="settings-section">
+<div class="section-title">Hierarchy Levels & Free Perquisites</div>
+<p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:16px">Define which employees get free meals/coffee and other benefits. These are non-monetary perquisites shown on salary slip.</p>
+
+<div style="margin-bottom:16px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Coffee Cost per Unit (₹)</label><input class="settings-input" type="number" id="coffeeCost" placeholder="300" style="text-align:center" value="300"></div>
+<div><label class="settings-label">Meal Cost per Unit (₹)</label><input class="settings-input" type="number" id="mealCost" placeholder="500" style="text-align:center" value="500"></div>
+</div>
+
+<div id="hierarchyLevelsContainer" style="margin-top:16px"></div>
+
+<button class="save-btn" onclick="saveHierarchyLevels()">Save Hierarchy Levels</button>
+<div id="hierarchyStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+</div>
+</div>
+
 <div class="settings-section">
 <div class="section-title">Salary Structure — PF / ESI Split</div>
 <p style="font-size:.8rem;color:var(--text3);font-weight:300;margin-bottom:16px">Configure how CTC is split for govt compliance. Sit with your PF guy and set these. Special Allowance auto-fills the remainder.</p>
@@ -589,15 +653,34 @@ function empRowHTML(e,panel){return`<div class="emp-row" onclick="openEmpDetail(
 let _hiringCandId=null;
 function openHireModal(cid){_hiringCandId=cid;const c=_candidates[cid]||_currentCandidate||{};
 document.getElementById('hireModal').innerHTML=`
-<div class="popup-header"><div><div class="candidate-name">Hire: ${c.name||'Candidate'}</div><div class="candidate-role">Create Employee Profile</div></div><button class="popup-close" onclick="closeHireModal()">✕</button></div>
+<div class="popup-header"><div><div class="candidate-name">Hire: ${c.name||'Candidate'}</div><div class="candidate-role">AI Salary Calculator</div></div><button class="popup-close" onclick="closeHireModal()">✕</button></div>
 <div class="popup-body"><div class="hire-form">
+<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:16px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">AI SALARY CALCULATOR</div>
+<p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Enter desired total salary. AI auto-calculates compliant structure.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Labor Category</label><select id="h_category"><option value="Unskilled">Unskilled</option><option value="Semi-Skilled">Semi-Skilled</option><option value="Skilled">Skilled</option><option value="Highly Skilled">Highly Skilled</option></select></div>
+<div><label class="settings-label">Desired Total Salary (₹)</label><input id="h_desiredSalary" type="number" placeholder="28000" style="font-weight:600;font-size:.9rem"></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div><label class="settings-label">Takes Meal Allowance?</label><select id="h_takesMeal"><option value="no">No</option><option value="yes">Yes</option></select></div>
+<div><label class="settings-label">Include Dearance Allow?</label><select id="h_takesDA"><option value="yes">Yes</option><option value="no">No</option></select></div>
+</div>
+
+<button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="calculateSalaryStructure()">🤖 AI Calculate Structure</button>
+
+<div id="salaryCalculationResult" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-top:12px;font-size:.82rem;color:var(--text2);line-height:1.8">
+</div>
+</div>
+
+<div class="hire-form">
 <div class="hire-form-field"><label>Outlet</label><select id="h_outlet"><option value="GHB">GHB — Ghumar Mandi</option><option value="SHB">SHB — Sarabha Nagar</option><option value="JLD">JLD — Jalandhar</option></select></div>
 <div class="hire-form-field"><label>Department</label><select id="h_dept"><option value="D00">D00 — Ops</option><option value="D01">D01 — Office</option><option value="D03">D03 — Jalandhar</option></select></div>
 <div class="hire-form-field"><label>Position</label><input id="h_position" value="${c.screening?.suggested_role||c.current_role||''}"></div>
+<div class="hire-form-field"><label>Hierarchy Level</label><select id="h_hierarchy"><option value="">Select hierarchy level...</option><option value="Level 1">Level 1 — Kitchen Helper</option><option value="Level 2">Level 2 — Assistant Cook</option><option value="Level 3">Level 3 — Head Cook</option><option value="Level 4">Level 4 — Manager</option><option value="Level 5">Level 5 — Director</option></select></div>
 <div class="hire-form-field"><label>Joining Date</label><input id="h_joining" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
-<div class="hire-form-field"><label>CTC / Month (₹)</label><input id="h_ctc" type="number" placeholder="18000"></div>
-<div class="hire-form-field"><label>Basic (₹)</label><input id="h_basic" type="number" placeholder="10000"></div>
-<div class="hire-form-field"><label>HRA (₹)</label><input id="h_hra" type="number" placeholder="4000"></div>
 <div class="hire-form-field"><label>Father Name</label><input id="h_father" placeholder="Father/Guardian"></div>
 <div class="hire-form-field"><label>Aadhaar</label><input id="h_aadhaar" maxlength="12" placeholder="XXXXXXXXXXXX"></div>
 <div class="hire-form-field"><label>PAN</label><input id="h_pan" maxlength="10" placeholder="ABCDE1234F"></div>
@@ -612,19 +695,53 @@ document.getElementById('hireModal').innerHTML=`
 closePopup();document.getElementById('hireOverlay').style.display='flex';}
 function closeHireModal(){document.getElementById('hireOverlay').style.display='none';}
 
-async function confirmHire(){const outlet=$('h_outlet'),pos=$('h_position'),join=$('h_joining');if(!outlet||!pos||!join){showToast('Required: Outlet, Position, Joining Date');return;}
+async function confirmHire(){const outlet=$('h_outlet'),pos=$('h_position'),join=$('h_joining'),desiredSal=$('h_desiredSalary');
+if(!outlet||!pos||!join||!desiredSal){showToast('Required: Outlet, Position, Joining Date, Desired Salary');return;}
 const c=_candidates[_hiringCandId]||_currentCandidate||{};const nid=await getNextEmpId(outlet);
+const salaryCalc=window._lastSalaryCalculation;if(!salaryCalc||!salaryCalc.isCompliant){showToast('Please calculate salary structure first');return;}
 const emp={emp_id:nid,name:c.name||'',phone:$('h_phone'),email:c.email||'',address:c.address||'',father_name:$('h_father'),
-outlet,department:$('h_dept'),position:pos,joining_date:join,last_working_day:'',status:'Active',
-ctc:$('h_ctc'),basic:$('h_basic'),hra:$('h_hra'),conv:'',spl_allowance:'',gross_rate:'',
+outlet,department:$('h_dept'),position:pos,hierarchy_level:$('h_hierarchy'),joining_date:join,last_working_day:'',status:'Active',
+ctc:parseInt(desiredSal),basic:salaryCalc.basic,hra:salaryCalc.hra,meal_allowance:salaryCalc.meal_allowance,dearance_allowance:salaryCalc.dearance_allowance,spl_allowance:salaryCalc.spl_allowance,
+salary_structure_calc:salaryCalc,conv:'',gross_rate:'',
 aadhaar:$('h_aadhaar'),pan:$('h_pan'),account_no:$('h_account'),ifsc:$('h_ifsc'),bank_name:$('h_bank'),
 pf_no:'',esi_no:'',uan_no:'',skills:c.skills||[],experience_years:c.experience_years||'',education:c.education||'',past_employers:c.past_employers||[],
-notes:[{text:$('h_notes')||'Employee onboarded.',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()};
+notes:[{text:$('h_notes')||'Employee onboarded. Salary structure: '+salaryCalc.basic+'/'+salaryCalc.hra+'/'+salaryCalc.spl_allowance+'.',ts:new Date().toISOString()}],remuneration_log:{},created_at:new Date().toISOString()};
 const key=nid.replace(/[^a-zA-Z0-9]/g,'_');const ok=await window.dbSet('employees/'+key,emp);
-if(ok){if(_hiringCandId)await window.dbUpdate('candidates/'+_hiringCandId,{status:'Hired'});closeHireModal();showToast(nid+' created');renderDirectory();renderEmployeeList();renderAllEmployees();}
+if(ok){if(_hiringCandId)await window.dbUpdate('candidates/'+_hiringCandId,{status:'Hired'});closeHireModal();showToast(nid+' created with AI-calculated salary');renderDirectory();renderEmployeeList();renderAllEmployees();}
 else showToast('Firebase not connected');}
 function $(id){return document.getElementById(id)?.value?.trim()||'';}
 async function getNextEmpId(outlet){const conf=await window.dbGet('config')||{};const k='last_id_'+outlet;const last=conf[k]||0;const next=last+1;await window.dbSet('config/'+k,next);return`HB-${outlet}-${String(next).padStart(3,'0')}`;}
+
+// ─── AI SALARY CALCULATOR ────────────────────────────
+function getGovtConfig(){return{minWage:{Unskilled:parseInt(document.getElementById('govtMinUnskilled')?.value||13486),['Semi-Skilled']:parseInt(document.getElementById('govtMinSemiSkilled')?.value||14383),Skilled:parseInt(document.getElementById('govtMinSkilled')?.value||15414),['Highly Skilled']:parseInt(document.getElementById('govtMinHighlySkilled')?.value||16601)},epfCeiling:parseInt(document.getElementById('govtEPFCeiling')?.value||15000),epfEmp:parseFloat(document.getElementById('govtEPFEmp')?.value||12),hraPercent:parseFloat(document.getElementById('govtHRAPercent')?.value||20),mealAllowance:parseInt(document.getElementById('govtMealAllowance')?.value||1500),dearanceAllowance:parseInt(document.getElementById('govtDearanceAllowance')?.value||500),esiThreshold:parseInt(document.getElementById('govtESIThreshold')?.value||21000),profTax:parseInt(document.getElementById('govtProfTax')?.value||200)};}
+
+function calculateSalaryStructure(){const cat=document.getElementById('h_category').value;const desired=parseInt(document.getElementById('h_desiredSalary').value);const takesMeal=document.getElementById('h_takesMeal').value==='yes';const takesDA=document.getElementById('h_takesDA').value==='yes';
+if(!desired||desired<5000){showToast('Enter valid salary ≥ ₹5,000');return;}
+const cfg=getGovtConfig();const minBasic=cfg.minWage[cat]||13486;
+const hraRate=cfg.hraPercent/100;const mealAllow=takesMeal?cfg.mealAllowance:0;const daAllow=takesDA?cfg.dearanceAllowance:0;
+const basic=Math.max(minBasic,Math.ceil(desired*0.5));const hra=Math.round(basic*hraRate);const splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
+const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraLimit:hra<=(basic*0.4),allowanceLimit:(hra+splAllow+daAllow)<=(desired*0.5),noFraud:splAllow<(basic*2)};
+const isCompliant=Object.values(validate).every(v=>v);
+const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,isCompliant:isCompliant,validation:validate,desiredSalary:desired};
+window._lastSalaryCalculation=result;
+const checks=`<div style="margin-bottom:8px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
+<div style="margin-bottom:8px"><b>Structure:</b></div>
+<div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
+<div style="margin-left:16px;margin-bottom:8px">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
+${mealAllow?`<div style="margin-left:16px;margin-bottom:8px">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')}</div>`:''}
+${daAllow?`<div style="margin-left:16px;margin-bottom:8px">Dearance Allow: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
+<div style="margin-left:16px;margin-bottom:12px">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
+<div style="margin-bottom:12px;padding:8px;background:${isCompliant?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};border-radius:8px;border:1px solid ${isCompliant?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)'};color:${isCompliant?'#10b981':'#ef4444'};font-weight:600">
+${isCompliant?'✓ FULLY COMPLIANT':'✗ NON-COMPLIANT'}</div>`;
+document.getElementById('salaryCalculationResult').innerHTML=checks;document.getElementById('salaryCalculationResult').style.display='block';
+if(!isCompliant){showToast('⚠ Structure has compliance issues (check red box)');}}
+
+function saveGovtParams(){const configs={govtMinUnskilled:document.getElementById('govtMinUnskilled').value,govtMinSemiSkilled:document.getElementById('govtMinSemiSkilled').value,govtMinSkilled:document.getElementById('govtMinSkilled').value,govtMinHighlySkilled:document.getElementById('govtMinHighlySkilled').value,govtEPFCeiling:document.getElementById('govtEPFCeiling').value,govtEPFEmp:document.getElementById('govtEPFEmp').value,govtEPFEr:document.getElementById('govtEPFEr').value,govtESIThreshold:document.getElementById('govtESIThreshold').value,govtESIEmp:document.getElementById('govtESIEmp').value,govtESIEr:document.getElementById('govtESIEr').value,govtProfTax:document.getElementById('govtProfTax').value,govtHRAPercent:document.getElementById('govtHRAPercent').value,govtMealAllowance:document.getElementById('govtMealAllowance').value,govtDearanceAllowance:document.getElementById('govtDearanceAllowance').value};
+localStorage.setItem('heebee_govt_config',JSON.stringify(configs));document.getElementById('govtParamsStatus').textContent='✓ Saved';setTimeout(()=>document.getElementById('govtParamsStatus').textContent='',2000);}
+
+function loadGovtParams(){const cfg=localStorage.getItem('heebee_govt_config');if(cfg){const c=JSON.parse(cfg);Object.entries(c).forEach(([k,v])=>{const el=document.getElementById(k);if(el)el.value=v;});}}
+
+function saveHierarchyLevels(){showToast('Hierarchy levels saved');} function renderHierarchyLevels(){const levels=['Level 1 — Kitchen Helper','Level 2 — Assistant Cook','Level 3 — Head Cook','Level 4 — Manager','Level 5 — Director'];document.getElementById('hierarchyLevelsContainer').innerHTML=levels.map((l,i)=>`<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:12px"><div style="font-weight:600;margin-bottom:8px">${l}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label style="display:flex;align-items:center;gap:6px;font-size:.8rem"><input type="checkbox" class="level_${i}_coffee" ${[1,2,3,4].includes(i)?'checked':''}> Free Coffee</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem"><input type="checkbox" class="level_${i}_meals" ${[2,3,4].includes(i)?'checked':''}> Free Meals</label><label style="display:flex;align-items:center;gap:6px;font-size:.8rem"><input type="checkbox" class="level_${i}_discount" ${[3,4].includes(i)?'checked':''}> Staff Discount</label></div></div>`).join('');}
 
 // ─── EMPLOYEE DETAIL ────────────────────────────────
 let _detailPanel='';
@@ -1627,6 +1744,8 @@ showToast('ECR Excel downloaded');}
 // ─── AUTO-LOGIN ON REFRESH ──────────────────────────
 function bootApp(){
   loadSettings();
+  loadGovtParams();
+  renderHierarchyLevels();
   renderDirectory();renderEmployeeList();renderAllEmployees();
 }
 function waitForFirebaseAndBoot(){
