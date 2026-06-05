@@ -770,10 +770,11 @@ const minWages=cfg.minWage;const allMins=Object.values(minWages);const minBasic=
 let status='',color='';if(basic<minBasic){status='⚠️ BELOW MINIMUM';color='#ef4444';}else if(basic>=minBasic&&basic<maxBasic){status='✓ Meets Minimum';color='#10b981';}else{status='✓ Above Minimum';color='#10b981';}
 const allowances=((parseInt(emp.hra)||0)+(parseInt(emp.meal_allowance)||0)+(parseInt(emp.dearance_allowance)||0)+(parseInt(emp.spl_allowance)||0));const allowPct=(allowances/ctc)*100;
 const issues=[];if(basic<minBasic)issues.push(`Basic ₹${basic.toLocaleString('en-IN')} is below minimum ₹${minBasic.toLocaleString('en-IN')}`);if(basic<(ctc*0.5))issues.push(`Basic ${(basic/ctc*100).toFixed(0)}% < 50% of CTC (law requires ≥50%)`);
-return `<div style="margin-bottom:12px;padding:12px;background:${color==='#10b981'?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)'};border:1px solid ${color==='#10b981'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'};border-radius:12px;color:${color};font-weight:600;font-size:.85rem">
-${status}${basic<minBasic?` (Basic ₹${basic.toLocaleString('en-IN')} < Min ₹${minBasic.toLocaleString('en-IN')})`:''}
-${issues.length>0?`<div style="margin-top:8px;font-weight:400;font-size:.78rem;color:${color};line-height:1.6">${issues.map(i=>'• '+i).join('<br>')}</div>`:''}
-${basic<minBasic?`<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:.65rem;min-width:auto;border-color:${color}" onclick="openEditModal('${Object.entries(_employees).find(kv=>kv[1]===emp)?.[0]}')">◈ Update Salary</button></div>`:''}
+const compBgColor=color==='#10b981'?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)';const compBorderColor=color==='#10b981'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)';const basicMinText=basic<minBasic?` (Basic ₹${basic.toLocaleString('en-IN')} < Min ₹${minBasic.toLocaleString('en-IN')})`:'';const issuesText=issues.length>0?`<div style="margin-top:8px;font-weight:400;font-size:.78rem;color:${color};line-height:1.6">${issues.map(i=>'• '+i).join('<br>')}</div>`:'';const empKey=Object.entries(_employees).find(kv=>kv[1]===emp)?.[0];const buttonText=basic<minBasic?`<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:.65rem;min-width:auto;border-color:${color}" onclick="openEditModal('${empKey}')">◈ Update Salary</button></div>`:'';
+return `<div style="margin-bottom:12px;padding:12px;background:${compBgColor};border:1px solid ${compBorderColor};border-radius:12px;color:${color};font-weight:600;font-size:.85rem">
+${status}${basicMinText}
+${issuesText}
+${buttonText}
 </div>`;}
 
 
