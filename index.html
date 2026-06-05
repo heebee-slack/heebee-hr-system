@@ -232,6 +232,7 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 <div class="nav-item" onclick="showPanel('employees',this)"><span class="nav-icon">◎</span><span class="nav-label">Employees</span></div>
 <div class="nav-item" onclick="showPanel('calculator',this)"><span class="nav-icon">✦</span><span class="nav-label">Calc</span></div>
 <div class="nav-item" onclick="showPanel('reports',this)" style="opacity:.5"><span class="nav-icon">◇</span><span class="nav-label">Reports</span><span class="nav-soon">Soon</span></div>
+<div class="nav-item" onclick="showPanel('logics',this)"><span class="nav-icon">⚙</span><span class="nav-label">Logics</span></div>
 <div class="nav-item" onclick="showPanel('settings',this)"><span class="nav-icon">◉</span><span class="nav-label">Settings</span></div>
 </nav>
 <div class="sidebar-footer">
@@ -582,6 +583,150 @@ Total Allowances: 45% of salary ✓ (within 50% limit)
 </div>
 </div>
 </div>
+
+<!-- LOGICS PANEL -->
+<div class="panel" id="panel-logics">
+<div class="page-header"><div class="page-eyebrow">Heebee HR</div><div class="page-title">System Logics & Compliance</div><div class="page-rule"></div></div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+<button class="tab-btn active" onclick="showLogicTab('gov',this)">Gov</button>
+<button class="tab-btn" onclick="showLogicTab('pf',this)">PF</button>
+<button class="tab-btn" onclick="showLogicTab('esi',this)">ESI</button>
+<button class="tab-btn" onclick="showLogicTab('deduct',this)">Deduct</button>
+<button class="tab-btn" onclick="showLogicTab('salary',this)">Salary</button>
+<button class="tab-btn" onclick="showLogicTab('hierarchy',this)">Hierarchy</button>
+</div>
+
+<div class="glass-card" style="max-width:900px">
+
+<!-- TAB 1: GOVERNMENT -->
+<div id="logic-tab-gov" class="logic-tab" style="display:block">
+<div class="section-title">Government Minimum Wages (Punjab)</div>
+<p style="font-size:.8rem;color:var(--text3);margin-bottom:16px">Update whenever Punjab govt announces wage changes</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+<div><label class="settings-label">Unskilled (₹)</label><input class="settings-input" type="number" id="logic_minUnskilled" placeholder="13486" style="text-align:center"></div>
+<div><label class="settings-label">Semi-Skilled (₹)</label><input class="settings-input" type="number" id="logic_minSemiSkilled" placeholder="14383" style="text-align:center"></div>
+<div><label class="settings-label">Skilled (₹)</label><input class="settings-input" type="number" id="logic_minSkilled" placeholder="15414" style="text-align:center"></div>
+<div><label class="settings-label">Highly Skilled (₹)</label><input class="settings-input" type="number" id="logic_minHighlySkilled" placeholder="16601" style="text-align:center"></div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('gov')" style="margin-top:12px">Save Government Wages</button>
+<div id="logic_gov_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+<!-- TAB 2: PROVIDENT FUND -->
+<div id="logic-tab-pf" class="logic-tab" style="display:none">
+<div class="section-title">Provident Fund (PF Act 1952)</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">EPF RULES</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+<div><label class="settings-label">Wage Ceiling (₹)</label><input class="settings-input" type="number" id="logic_epfCeiling" placeholder="15000" style="text-align:center"></div>
+<div><label class="settings-label">Employee %</label><input class="settings-input" type="number" id="logic_epfEmp" placeholder="12" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">Employer %</label><input class="settings-input" type="number" id="logic_epfEr" placeholder="13" step="0.01" style="text-align:center"></div>
+</div>
+</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">EPF OPT-OUT GOVERNANCE</div>
+<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer"><input type="checkbox" id="logic_epfOptOutEnabled" checked> <span style="font-size:.85rem">Allow EPF Opt-Out</span></label>
+<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer"><input type="checkbox" id="logic_epfOptOutPassword" checked> <span style="font-size:.85rem">Require Password Protection</span></label>
+<div><label class="settings-label">Admin Password</label><input class="settings-input" type="password" id="logic_hrPassword" placeholder="•••••••" style="text-align:center"></div>
+<div style="font-size:.75rem;color:var(--text3);margin-top:8px">Password required to approve irreversible PF opt-outs</div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('pf')">Save PF Rules</button>
+<div id="logic_pf_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+<!-- TAB 3: ESI -->
+<div id="logic-tab-esi" class="logic-tab" style="display:none">
+<div class="section-title">Employees State Insurance (ESI Act 1948)</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+<div><label class="settings-label">Gross Threshold (₹)</label><input class="settings-input" type="number" id="logic_esiThreshold" placeholder="21000" style="text-align:center"></div>
+<div><label class="settings-label">Employee %</label><input class="settings-input" type="number" id="logic_esiEmp" placeholder="0.75" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">Employer %</label><input class="settings-input" type="number" id="logic_esiEr" placeholder="3.25" step="0.01" style="text-align:center"></div>
+</div>
+<div style="font-size:.75rem;color:var(--text3);margin-top:8px">ESI automatically disabled when gross salary exceeds threshold</div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('esi')">Save ESI Rules</button>
+<div id="logic_esi_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+<!-- TAB 4: DEDUCTIONS -->
+<div id="logic-tab-deduct" class="logic-tab" style="display:none">
+<div class="section-title">Statutory Deductions</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">PROFESSIONAL TAX (MANDATORY)</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface);border-radius:8px">
+<div><div style="font-weight:600">Professional Tax / Month</div><div style="font-size:.75rem;color:var(--text3)">Punjab PSDT (Independent of PF)</div></div>
+<div style="font-weight:700;color:var(--gold)">₹200 <span style="font-size:.7rem;color:var(--text3)">FIXED</span></div>
+</div>
+<div style="font-size:.75rem;color:var(--text3);margin-top:8px">⚠️ Cannot be changed - Mandatory for employees earning > ₹2,50,000/year</div>
+</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">OTHER DEDUCTIONS (EDITABLE)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="settings-label">HRA % of Basic</label><input class="settings-input" type="number" id="logic_hraPercent" placeholder="20" step="0.01" style="text-align:center"></div>
+<div><label class="settings-label">Meal Allowance Default (₹)</label><input class="settings-input" type="number" id="logic_mealDefault" placeholder="1500" style="text-align:center"></div>
+<div><label class="settings-label">Dearance Allowance Default (₹)</label><input class="settings-input" type="number" id="logic_daDefault" placeholder="500" style="text-align:center"></div>
+<div><label class="settings-label">Meal Allow Max Cap (% of Basic)</label><input class="settings-input" type="number" id="logic_mealCap" placeholder="10" step="0.1" style="text-align:center"></div>
+</div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('deduct')">Save Deduction Rules</button>
+<div id="logic_deduct_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+<!-- TAB 5: SALARY RULES -->
+<div id="logic-tab-salary" class="logic-tab" style="display:none">
+<div class="section-title">Salary Structure Compliance (Code on Wages)</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">LOCKED RULES (Per Code on Wages 2019)</div>
+<div style="font-size:.82rem;line-height:2;color:var(--text2)">
+✓ Basic ≥ Government Minimum for Category<br>
+✓ Basic ≥ <span id="logic_basicPercent">50</span>% of Gross Salary<br>
+✓ HRA ≤ <span id="logic_hraLimit">40</span>% of Basic<br>
+✓ All Allowances ≤ <span id="logic_allowancePercent">50</span>% of Gross<br>
+✓ Special Allowance = Remainder (after deductions)
+</div>
+</div>
+<div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold);margin-bottom:12px">EDITABLE COMPLIANCE LIMITS</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="settings-label">Basic Min % of Gross</label><input class="settings-input" type="number" id="logic_basicPercent_edit" placeholder="50" step="1" style="text-align:center"> <span style="font-size:.7rem;color:var(--text3)">%</span></div>
+<div><label class="settings-label">HRA Max % of Basic</label><input class="settings-input" type="number" id="logic_hraLimit_edit" placeholder="40" step="1" style="text-align:center"> <span style="font-size:.7rem;color:var(--text3)">%</span></div>
+<div><label class="settings-label">Allowances Max % of Gross</label><input class="settings-input" type="number" id="logic_allowancePercent_edit" placeholder="50" step="1" style="text-align:center"> <span style="font-size:.7rem;color:var(--text3)">%</span></div>
+<div><label class="settings-label">Special Allow Auto-Adjust</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="logic_autoAdjustBasic" checked> <span style="font-size:.8rem">Auto-adjust Basic to meet rules</span></label></div>
+</div>
+<div style="font-size:.75rem;color:var(--text3);margin-top:8px;background:rgba(16,185,129,0.08);padding:8px;border-radius:6px;border-left:3px solid #10b981">
+⚠️ WARNING: Do NOT change without legal review. These rules ensure compliance with Punjab labor law.
+</div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('salary')">Save Salary Rules</button>
+<div id="logic_salary_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+<!-- TAB 6: HIERARCHY -->
+<div id="logic-tab-hierarchy" class="logic-tab" style="display:none">
+<div class="section-title">Hierarchy Levels & Benefits</div>
+<div id="logic_hierarchy_container" style="margin-bottom:16px"></div>
+<div style="margin-top:16px;padding:16px;background:var(--surface2);border:2px dashed var(--border2);border-radius:12px;cursor:pointer" onclick="addNewHierarchyLevel()">
+<div style="text-align:center;font-family:Space Mono,monospace;font-size:.5rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px">+ ADD NEW LEVEL</div>
+<div style="font-size:.8rem;color:var(--text3)">Click to create a new hierarchy level with custom benefits</div>
+</div>
+<button class="save-btn" onclick="saveLogicTab('hierarchy')" style="margin-top:16px">Save Hierarchy Levels</button>
+<div id="logic_hierarchy_status" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.45rem;color:var(--text3)"></div>
+</div>
+
+</div>
+
+<!-- VERSION HISTORY -->
+<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border2);border-radius:12px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-weight:600">📋 Version History</div>
+<button class="btn-ghost" style="padding:6px 12px;font-size:.7rem" onclick="showLogicHistory()">View Full History</button>
+</div>
+<div id="logic_history_preview" style="font-size:.8rem;color:var(--text2);line-height:1.6"></div>
+</div>
+
 </main>
 </div>
 <div class="overlay" id="candidateOverlay" style="display:none" onclick="if(event.target===this)closePopup()"><div class="popup-card" id="candidatePopup"></div></div>
@@ -605,7 +750,19 @@ function doLogin(){const e=document.getElementById('loginEmail').value.trim().to
 document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function doLogout(){sessionStorage.removeItem('hb_hr_user');document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
 function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
-function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();}
+function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();if(n==='logics')loadLogicPanel();}
+function showLogicTab(tab,btn){document.querySelectorAll('.logic-tab').forEach(t=>t.style.display='none');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('logic-tab-'+tab).style.display='block';btn.classList.add('active');}
+function loadLogicPanel(){const cfg=JSON.parse(localStorage.getItem('hb_logic_config')||'{}');Object.entries(cfg).forEach(([k,v])=>{const el=document.getElementById('logic_'+k);if(el){if(el.type==='checkbox')el.checked=v===true;else el.value=v;}});renderHierarchyLevels();updateLogicHistory();}
+function saveLogicTab(tab){const cfg=JSON.parse(localStorage.getItem('hb_logic_config')||'{}');const ids=tab==='gov'?['minUnskilled','minSemiSkilled','minSkilled','minHighlySkilled']:tab==='pf'?['epfCeiling','epfEmp','epfEr','epfOptOutEnabled','epfOptOutPassword','hrPassword']:tab==='esi'?['esiThreshold','esiEmp','esiEr']:tab==='deduct'?['hraPercent','mealDefault','daDefault','mealCap']:tab==='salary'?['basicPercent_edit','hraLimit_edit','allowancePercent_edit','autoAdjustBasic']:[];ids.forEach(id=>{const el=document.getElementById('logic_'+id);if(el){cfg[id]=el.type==='checkbox'?el.checked:el.value;}});localStorage.setItem('hb_logic_config',JSON.stringify(cfg));addLogicHistory(`Updated ${tab.toUpperCase()} settings`);document.getElementById('logic_'+tab+'_status').textContent='✓ Saved';setTimeout(()=>document.getElementById('logic_'+tab+'_status').textContent='',2000);}
+function renderHierarchyLevels(){const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');const c=document.getElementById('logic_hierarchy_container');if(!c)return;c.innerHTML=Object.entries(h).map(([id,l])=>`<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:600">${l.name||'Level '+id}</div><button class="btn-danger" style="padding:4px 10px;font-size:.7rem" onclick="deleteHierarchyLevel('${id}')">Delete</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.8rem">${['freeCoffee','freeMeals','staffDiscount','transport','phoneBill'].map(b=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ${l[b]?'checked':''} onchange="updateHierarchyLevel('${id}','${b}',this.checked)"> <span>${b==='freeCoffee'?'Free Coffee':b==='freeMeals'?'Free Meals':b==='staffDiscount'?'Staff Discount':b==='transport'?'Transport Allowance (₹)':'Phone Bill (₹)'}</span></label>${['transport','phoneBill'].includes(b)?`<input type="number" value="${l[b+'_amt']||0}" onchange="updateHierarchyAmount('${id}','${b}',this.value)" style="width:80px;padding:4px 8px" placeholder="0">`:''}`).join('')}</div></div>`).join('');}
+function addNewHierarchyLevel(){const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');const id=Date.now().toString();h[id]={name:'New Level',freeCoffee:false,freeMeals:false,staffDiscount:false,transport:false,phoneBill:false,transport_amt:0,phoneBill_amt:0};localStorage.setItem('hb_hierarchy_levels',JSON.stringify(h));renderHierarchyLevels();}
+function deleteHierarchyLevel(id){const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');delete h[id];localStorage.setItem('hb_hierarchy_levels',JSON.stringify(h));renderHierarchyLevels();}
+function updateHierarchyLevel(id,field,val){const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');h[id][field]=val;localStorage.setItem('hb_hierarchy_levels',JSON.stringify(h));}
+function updateHierarchyAmount(id,field,val){const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');h[id][field+'_amt']=parseInt(val)||0;localStorage.setItem('hb_hierarchy_levels',JSON.stringify(h));}
+function addLogicHistory(action){const hist=JSON.parse(localStorage.getItem('hb_logic_history')||'[]');hist.unshift({timestamp:new Date().toISOString(),user:sessionStorage.getItem('hb_hr_user')||'unknown',action:action});localStorage.setItem('hb_logic_history',JSON.stringify(hist.slice(0,50)));}
+function updateLogicHistory(){const hist=JSON.parse(localStorage.getItem('hb_logic_history')||'[]');const prev=document.getElementById('logic_history_preview');if(prev)prev.innerHTML=hist.slice(0,3).map(h=>`<div>📝 ${h.action} <span style="color:var(--text3)">on ${new Date(h.timestamp).toLocaleDateString('en-IN')} by ${h.user}</span></div>`).join('')||'<span style="color:var(--text3)">No history yet</span>';}
+function showLogicHistory(){const hist=JSON.parse(localStorage.getItem('hb_logic_history')||'[]');const msg=hist.map(h=>`${new Date(h.timestamp).toLocaleString('en-IN')} — ${h.action} (by ${h.user})`).join('\n');alert('LOGIC CHANGES HISTORY\n\n'+msg||'No history');}
+window.addEventListener('load',()=>{const h=JSON.parse(localStorage.getItem('hb_hierarchy_levels')||'{}');if(Object.keys(h).length===0){const defaults={1:{name:'Kitchen Helper',freeCoffee:true,freeMeals:false},2:{name:'Assistant Cook',freeCoffee:true,freeMeals:true},3:{name:'Head Cook',freeCoffee:true,freeMeals:true,staffDiscount:true},4:{name:'Manager',freeCoffee:true,freeMeals:true,staffDiscount:true,transport:true,transport_amt:1000},5:{name:'Director',freeCoffee:true,freeMeals:true,staffDiscount:true,transport:true,transport_amt:2000,phoneBill:true,phoneBill_amt:1000}};localStorage.setItem('hb_hierarchy_levels',JSON.stringify(defaults));}});
 function showOTab(n,el){['scan','directory','empprofiles'].forEach(t=>{document.getElementById('otab-'+t).style.display='none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('otab-'+n).style.display='block';if(el)el.classList.add('active');if(n==='directory')renderDirectory();if(n==='empprofiles')renderEmployeeList();}
 function showPTab(n){['bank','govt','generate','ecr'].forEach(t=>{const el=document.getElementById('ptab-'+t);if(el)el.style.display='none';const btn=document.getElementById('ptab-'+t+'-btn');if(btn)btn.classList.remove('active');});document.getElementById('ptab-'+n).style.display='block';document.getElementById('ptab-'+n+'-btn').classList.add('active');
 if(n==='ecr')populateEcrMonths();}
