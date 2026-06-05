@@ -839,6 +839,7 @@ function calculateSalaryStructure(){
   if(!desired||desired<1000){showToast('Enter a valid desired salary');return;}
   const cfg=getGovtConfig();
   const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg);
+  window._lastCalcResult=r;window._lastCalcCfg=cfg;
   if(!r.error){window._lastSalaryCalculation={basic:r.basic,hra:r.hra,spl_allowance:r.splAllow,meal_allowance:r.mealAllow,dearance_allowance:r.daAllow,total:r.desired,category:cat,isCompliant:r.isCompliant,mealPolicy};}
   else{window._lastSalaryCalculation=null;}
   renderSalaryResult(r,pfOn,mealPolicy,cfg,'salaryCalculationResult');
@@ -874,7 +875,7 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
     splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
     gross=desired;
   }
-  // Deductions on gross
+  // Employee Deductions on gross
   const epfWage=Math.min(basic,cfg.epfCeiling||15000);
   const pf=pfOn?Math.round(epfWage*(cfg.epfEmp||12)/100):0;
   const esiThreshold=cfg.esiThreshold||21000;
@@ -883,12 +884,16 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
   const profTax=cfg.profTax||200;
   const totalDed=pf+esi+profTax;
   const netPay=gross-totalDed;
+  // Employer Contributions
+  const erPf=pfOn?Math.round(epfWage*(cfg.epfEr||13)/100):0;
+  const erEsi=esiApplicable?Math.round(gross*(cfg.esiEr||3.25)/100):0;
+  const totalErContrib=erPf+erEsi;
   const esiThresholdStr=esiThreshold.toLocaleString('en-IN');
   // Compliance (always against gross)
   const totalAllowances=hra+splAllow+mealAllow+daAllow;
   const validate={basic:basic>=minBasic,fiftyPct:basic>=(gross*0.5),hraOk:hra===0||hra<=(basic*0.4),allowancesOk:totalAllowances<=(gross*0.5),noFraud:splAllow<(basic*2)};
   const isCompliant=Object.values(validate).every(v=>v);
-  return{basic,hra,splAllow,mealAllow,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,error:false};
+  return{basic,hra,splAllow,mealAllow,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,erPf,erEsi,totalErContrib,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,pfOn,error:false};
 }
 
 function renderSalaryResult(r,pfOn,mealPolicy,cfg,resultElId){
@@ -915,18 +920,40 @@ ${r.daAllow>0?`<div style="display:flex;justify-content:space-between;margin-bot
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">EPF (Employee)</span><span>${pfOn?'₹'+r.pf.toLocaleString('en-IN'):'<span style="color:var(--text3);font-size:.75rem">Opted Out</span>'}</span></div>
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">ESI (0.75%)</span><span>${r.esiApplicable?'₹'+r.esi.toLocaleString('en-IN'):'<span style="color:var(--text3);font-size:.75rem">Auto OFF (Gross &gt; ₹'+r.esiThresholdStr+')</span>'}</span></div>
 <div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-top:6px;border-top:1px solid var(--border2)"><span style="color:var(--text2)">Professional Tax</span><span>₹${r.profTax.toLocaleString('en-IN')}</span></div>
-<div style="display:flex;justify-content:space-between;font-weight:700;color:#ef4444"><span>Total Deductions</span><span>₹${r.totalDed.toLocaleString('en-IN')}</span></div>
+<div style="display:flex;justify-content:space-between;font-weight:700;color:#ef4444"><span>Total Deductions (Employee)</span><span>₹${r.totalDed.toLocaleString('en-IN')}</span></div>
+</div>
+<div style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.15);border-radius:10px;padding:14px;margin-top:14px">
+<div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:#a855f7;margin-bottom:10px">EMPLOYER CONTRIBUTION</div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">EPF/PF (ER Share)</span><span>${r.pfOn?'₹'+r.erPf.toLocaleString('en-IN'):'—'}</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2)">ESI (ER Share)</span><span>${r.esiApplicable?'₹'+r.erEsi.toLocaleString('en-IN'):'—'}</span></div>
+<div style="display:flex;justify-content:space-between;font-weight:700;color:#a855f7"><span>Total Employer Cost</span><span>₹${r.totalErContrib.toLocaleString('en-IN')}</span></div>
 </div>
 </div>
-<div style="padding:14px;background:var(--surface2);border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border:1px solid var(--border2)">
+<div style="padding:14px;background:var(--surface2);border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;margin-top:14px;border:1px solid var(--border2)">
 <div><div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:var(--text3)">NET IN-HAND / MONTH</div><div style="font-size:.72rem;color:var(--text3);margin-top:2px">After all statutory deductions</div></div>
 <div style="font-size:1.4rem;font-weight:700;color:var(--gold)">₹${r.netPay.toLocaleString('en-IN')}</div>
 </div>
-<div style="padding:10px;background:${bgC};border:1px solid ${bdC};border-radius:8px;color:${txC};font-weight:600;text-align:center;margin-bottom:8px">${r.isCompliant?'✓ FULLY COMPLIANT — All Legal Guardrails Met':'✗ NON-COMPLIANT — See Issues Below'}</div>
+<div style="padding:10px;background:${bgC};border:1px solid ${bdC};border-radius:8px;color:${txC};font-weight:600;text-align:center;margin-bottom:12px">${r.isCompliant?'✓ FULLY COMPLIANT — All Legal Guardrails Met':'✗ NON-COMPLIANT — See Issues Below'}</div>
 ${!r.validate.fiftyPct?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem">✗ Basic must be ≥ 50% of gross (Code on Wages)</div>`:''}
 ${!r.validate.allowancesOk?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem">✗ Total allowances exceed 50% of gross</div>`:''}
-${!r.validate.noFraud?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem">✗ Special allowance unusually high — audit risk</div>`:''}`;
+${!r.validate.noFraud?`<div style="margin-bottom:6px;padding:8px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #ef4444;color:#ef4444;font-size:.75rem">✗ Special allowance unusually high — audit risk</div>`:''}
+<button class="btn-primary" style="width:100%;margin-top:12px" onclick="printSalaryReceipt(window._lastCalcResult)">🖨️ Print Job Offer Receipt</button>`;
   el.style.display='block';
+}
+
+function printSalaryReceipt(r){
+  if(!r||r.error){alert('Please calculate salary structure first');return;}
+  const cfg=window._lastCalcCfg||getGovtConfig();
+  const today=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const mealLabel=r.mealPolicy==='add'?'Added to Salary':'Part of Salary';
+  const pf1Str=r.pfOn?'<tr><td>Provident Fund (EPF) — 12% of Basic</td><td class="amount">₹'+r.pf.toLocaleString('en-IN')+'</td></tr>':'<tr><td>Provident Fund (EPF)</td><td class="amount" style="color:#999">Opted Out</td></tr>';
+  const esi1Str=r.esiApplicable?'<tr><td>ESI (Employee) — 0.75%</td><td class="amount">₹'+r.esi.toLocaleString('en-IN')+'</td></tr>':'<tr><td>ESI (Employee)</td><td class="amount" style="color:#999">N/A (Salary > ₹'+r.esiThresholdStr+')</td></tr>';
+  const pf2Str=r.pfOn?'<tr><td>EPF Employer Share — 13% of Basic</td><td class="amount">₹'+r.erPf.toLocaleString('en-IN')+'</td></tr>':'<tr><td>EPF Employer Share</td><td class="amount" style="color:#999">—</td></tr>';
+  const esi2Str=r.esiApplicable?'<tr><td>ESI Employer Share — 3.25%</td><td class="amount">₹'+r.erEsi.toLocaleString('en-IN')+'</td></tr>':'<tr><td>ESI Employer Share</td><td class="amount" style="color:#999">—</td></tr>';
+  const compStr=r.isCompliant?'<div class="compliance">✓ <strong>Fully Compliant</strong> — Salary structure meets all Government of Punjab minimum wage guidelines and statutory requirements.</div>':'<div class="non-compliance">⚠️ <strong>Compliance Issues Detected</strong> — Please review with HR administrator before finalizing.</div>';
+  const w=window.open('','print','height=800,width=950');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Job Offer</title><style>body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f5f5f5;color:#333}.receipt{max-width:800px;margin:0 auto;background:white;padding:40px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}.header{text-align:center;margin-bottom:30px;border-bottom:3px solid #1f2937;padding-bottom:20px}.company-name{font-size:24px;font-weight:bold;color:#1f2937;margin-bottom:4px}.company-info{font-size:12px;color:#666}.section{margin-bottom:25px}.section-title{font-size:14px;font-weight:bold;color:#1f2937;background:#f3f4f6;padding:8px 12px;margin-bottom:12px;border-left:4px solid #fbbf24}table{width:100%;border-collapse:collapse;font-size:13px}td{padding:8px 12px;border-bottom:1px solid #e5e7eb}.amount{text-align:right;font-weight:600}.subtotal-row{background:#f9fafb;font-weight:bold}.earnings-table td.amount{color:#10b981}.deductions-table td.amount{color:#ef4444}.employer-table td.amount{color:#a855f7}.footer{text-align:center;margin-top:30px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:11px;color:#666}.compliance{background:#f0fdf4;border-left:4px solid #10b981;padding:10px 12px;margin:15px 0;font-size:12px}.non-compliance{background:#fef2f2;border-left:4px solid #ef4444;padding:10px 12px;margin:15px 0;font-size:12px}@media print{body{background:white}.receipt{box-shadow:none;padding:0}}</style></head><body><div class="receipt"><div class="header"><div class="company-name">HEEBEE COFFEE PRIVATE LIMITED</div><div class="company-info">Job Offer Salary Structure Receipt</div><div class="company-info" style="margin-top:8px">Date: ${today}</div></div><div class="section"><div class="section-title">📊 SALARY BREAKDOWN (Monthly)</div><table class="earnings-table"><tr><td>Basic Salary</td><td class="amount">₹${r.basic.toLocaleString('en-IN')}</td></tr>${r.hra>0?'<tr><td>HRA ('+cfg.hraPercent+'%)</td><td class="amount">₹'+r.hra.toLocaleString('en-IN')+'</td></tr>':''}${r.daAllow>0?'<tr><td>Dearance Allowance</td><td class="amount">₹'+r.daAllow.toLocaleString('en-IN')+'</td></tr>':''}${r.mealAllow>0?'<tr><td>Meal Allowance</td><td class="amount">₹'+r.mealAllow.toLocaleString('en-IN')+' ('+mealLabel+')</td></tr>':''}
+<tr><td>Special Allowance</td><td class="amount">₹${r.splAllow.toLocaleString('en-IN')}</td></tr><tr class="subtotal-row"><td>Gross Salary</td><td class="amount">₹${r.gross.toLocaleString('en-IN')}</td></tr></table></div><div class="section"><div class="section-title">💰 EMPLOYEE DEDUCTIONS</div><table class="deductions-table">${pf1Str}${esi1Str}<tr><td>Professional Tax</td><td class="amount">₹${r.profTax.toLocaleString('en-IN')}</td></tr><tr class="subtotal-row"><td>Total Deductions</td><td class="amount">₹${r.totalDed.toLocaleString('en-IN')}</td></tr></table></div><div class="section"><div class="section-title">🏢 EMPLOYER CONTRIBUTION</div><table class="employer-table">${pf2Str}${esi2Str}<tr class="subtotal-row"><td>Total Employer Contribution</td><td class="amount">₹${r.totalErContrib.toLocaleString('en-IN')}</td></tr></table></div><div style="background:#fef3c7;border:1px solid #fcd34d;padding:12px;border-radius:6px;margin:20px 0;font-size:12px"><strong>💡 Total Cost to Company (CTC):</strong> ₹${(r.gross+r.totalErContrib).toLocaleString('en-IN')} per month</div><div class="section"><div class="section-title">✋ NET SALARY</div><div style="background:#f0fdf4;padding:15px;border-radius:6px;text-align:center"><div style="font-size:12px;color:#666;margin-bottom:4px">Monthly Take-Home</div><div style="font-size:32px;font-weight:bold;color:#10b981">₹${r.netPay.toLocaleString('en-IN')}</div><div style="font-size:11px;color:#666;margin-top:4px">After all statutory deductions</div></div></div>${compStr}<div class="footer"><p style="margin:5px 0"><strong>Heebee Coffee Private Limited</strong></p><p style="margin:5px 0">This salary structure is indicative and subject to company policies and statutory requirements.</p><p style="margin-top:15px;color:#999">Generated: ${new Date().toLocaleString('en-IN')}</p></div></div>` + `<script>window.onload=function(){window.print();setTimeout(()=>window.close(),500);}<`+`/script></body></html>`);w.document.close();
 }
 
 function updateCalcMinHint(){
@@ -954,6 +981,7 @@ function calculateSalaryStructureTab(){
   if(!desired||desired<1000){showToast('Enter a valid desired salary');return;}
   const cfg=getGovtConfig();
   const r=computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg);
+  window._lastCalcResult=r;window._lastCalcCfg=cfg;
   // Update ESI status label
   const esiEl=document.getElementById('calc_esiStatus');
   if(esiEl&&!r.error){const lim=(cfg.esiThreshold||21000).toLocaleString('en-IN');esiEl.textContent=r.esiApplicable?'0.75% — Applicable':'Auto OFF (> ₹'+lim+')';esiEl.style.color=r.esiApplicable?'#10b981':'#ef4444';}
