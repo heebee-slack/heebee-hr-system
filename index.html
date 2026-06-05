@@ -23,7 +23,8 @@ body.dark .orb1{width:500px;height:500px;top:-80px;right:-80px;background:radial
 body.dark .orb2{width:400px;height:400px;bottom:-60px;left:-60px;background:radial-gradient(circle,#0d1a30,transparent 70%);opacity:.6;animation-duration:18s;animation-delay:5s}
 body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-gradient(circle,#1c1c30,transparent 70%);opacity:.5;animation-duration:22s;animation-delay:10s}
 @keyframes orbDrift{0%{transform:translate(0,0)}100%{transform:translate(28px,18px)}}
-.login-wrap{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.login-wrap{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:#f5f5f7}
+body.dark .login-wrap{background:#0a0a0f}
 .login-card{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow2);padding:48px 40px;width:100%;max-width:400px;text-align:center}
 .login-brand{font-weight:200;font-size:1.6rem;letter-spacing:8px;text-transform:uppercase;color:var(--text);margin-bottom:4px}
 .login-sub{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:40px}
@@ -174,8 +175,7 @@ body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-grad
 .save-btn:hover{opacity:.85}
 .toast{position:fixed;bottom:32px;right:32px;background:var(--btn-bg);color:var(--btn-fg);padding:12px 20px;border-radius:12px;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;z-index:9999;animation:toastIn .3s ease;box-shadow:var(--shadow2)}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.panel{display:none;opacity:0}
-.panel.active{display:block;opacity:1}
+.panel{display:none}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
 .empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
 .empty-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase}
@@ -750,7 +750,7 @@ function doLogin(){const e=document.getElementById('loginEmail').value.trim().to
 document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function doLogout(){sessionStorage.removeItem('hb_hr_user');document.getElementById('appLayout').style.display='none';document.getElementById('loginWrap').style.display='flex';}
 function toggleTheme(){document.body.classList.toggle('dark');document.body.classList.toggle('light');}
-function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();if(n==='logics')loadLogicPanel();}
+function showPanel(n,el){document.querySelectorAll('.panel').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));const tgt=document.getElementById('panel-'+n);if(tgt){tgt.classList.add('active');tgt.style.display='block';}if(el)el.classList.add('active');if(n==='employees')renderAllEmployees();if(n==='logics')loadLogicPanel();}
 function showLogicTab(tab,btn){document.querySelectorAll('.logic-tab').forEach(t=>t.style.display='none');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('logic-tab-'+tab).style.display='block';btn.classList.add('active');}
 function loadLogicPanel(){const cfg=JSON.parse(localStorage.getItem('hb_logic_config')||'{}');Object.entries(cfg).forEach(([k,v])=>{const el=document.getElementById('logic_'+k);if(el){if(el.type==='checkbox')el.checked=v===true;else el.value=v;}});renderHierarchyLevels();updateLogicHistory();}
 function saveLogicTab(tab){const cfg=JSON.parse(localStorage.getItem('hb_logic_config')||'{}');const ids=tab==='gov'?['minUnskilled','minSemiSkilled','minSkilled','minHighlySkilled']:tab==='pf'?['epfCeiling','epfEmp','epfEr','epfOptOutEnabled','epfOptOutPassword','hrPassword']:tab==='esi'?['esiThreshold','esiEmp','esiEr']:tab==='deduct'?['hraPercent','mealDefault','daDefault','mealCap']:tab==='salary'?['basicPercent_edit','hraLimit_edit','allowancePercent_edit','autoAdjustBasic']:[];ids.forEach(id=>{const el=document.getElementById('logic_'+id);if(el){cfg[id]=el.type==='checkbox'?el.checked:el.value;}});localStorage.setItem('hb_logic_config',JSON.stringify(cfg));addLogicHistory(`Updated ${tab.toUpperCase()} settings`);document.getElementById('logic_'+tab+'_status').textContent='✓ Saved';setTimeout(()=>document.getElementById('logic_'+tab+'_status').textContent='',2000);}
