@@ -789,13 +789,14 @@ const isCompliant=Object.values(validate).every(v=>v);
 const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,isCompliant:isCompliant,validation:validate,desiredSalary:desired};
 window._lastSalaryCalculation=result;
 const mealPolicy=document.querySelector('input[name="h_mealPolicy"]:checked')?.value||'add';
+const mealPolicyLabel=mealPolicy==='add'?'ADDED':'DEDUCTED';
 const checks=`<div style="margin-bottom:8px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
 <div style="margin-bottom:8px"><b>Salary Structure:</b></div>
 <div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
 <div style="margin-left:16px;margin-bottom:8px;border-bottom:1px solid var(--border2);padding-bottom:8px">
 <div style="margin-bottom:4px">Allowances (Total ${allowancePercent.toFixed(1)}% of gross):</div>
 <div style="margin-left:8px;font-size:.75rem">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
-${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600">[${mealPolicy==='add'?'ADDED':'DEDUCTED'}]</span></div>`:''}
+${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600;font-size:.7rem">[${mealPolicyLabel}]</span></div>`:''}
 ${daAllow?`<div style="margin-left:8px;font-size:.75rem">Dearance Allowance: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
 <div style="margin-left:8px;font-size:.75rem">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
 </div>
@@ -818,13 +819,14 @@ const totalAllowances=hra+splAllow+mealAllow+daAllow;const allowancePercent=(tot
 const validate={basic:basic>=minBasic,fiftyPct:basic>=(desired*0.5),hraLimit:hra<=(basic*0.4),allowanceLimit:totalAllowances<=(desired*0.5),noFraud:splAllow<(basic*2)};
 const isCompliant=Object.values(validate).every(v=>v);
 const result={basic:Math.round(basic),hra:Math.round(hra),spl_allowance:Math.round(splAllow),meal_allowance:mealAllow,dearance_allowance:daAllow,total:desired,category:cat,mealPolicy:mealPolicy,isCompliant:isCompliant};
+const mealPolicyLabel2=mealPolicy==='add'?'➕ ADDED TO':'➖ DEDUCTED FROM';
 const checks=`<div style="margin-bottom:12px"><b>Category:</b> ${cat} (Min Basic: ₹${minBasic.toLocaleString('en-IN')})</div>
 <div style="margin-bottom:8px"><b>Salary Structure:</b></div>
 <div style="margin-left:16px;margin-bottom:8px">Basic: ₹${result.basic.toLocaleString('en-IN')} (${(result.basic/desired*100).toFixed(1)}%)</div>
 <div style="margin-left:16px;margin-bottom:8px;border-bottom:1px solid var(--border2);padding-bottom:8px">
 <div style="margin-bottom:4px">Allowances (Total ${allowancePercent.toFixed(1)}% of gross):</div>
 <div style="margin-left:8px;font-size:.75rem">HRA (${cfg.hraPercent}%): ₹${result.hra.toLocaleString('en-IN')}</div>
-${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600;font-size:.7rem;background:var(--surface2);padding:2px 6px;border-radius:4px">${mealPolicy==='add'?'➕ ADDED TO':'➖ DEDUCTED FROM'} SALARY</span></div>`:''}
+${mealAllow?`<div style="margin-left:8px;font-size:.75rem">Meal Allowance: ₹${mealAllow.toLocaleString('en-IN')} <span style="color:var(--gold);font-weight:600;font-size:.7rem;background:var(--surface2);padding:2px 6px;border-radius:4px">${mealPolicyLabel2} SALARY</span></div>`:''}
 ${daAllow?`<div style="margin-left:8px;font-size:.75rem">Dearance Allowance: ₹${daAllow.toLocaleString('en-IN')}</div>`:''}
 <div style="margin-left:8px;font-size:.75rem">Special Allowance: ₹${result.spl_allowance.toLocaleString('en-IN')}</div>
 </div>
