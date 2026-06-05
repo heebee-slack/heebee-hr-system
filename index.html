@@ -856,26 +856,25 @@ function calculateSalaryStructure(){
 function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,cfg){
   const minBasic=cfg.minWage[cat]||13486;
   if(desired<minBasic)return{error:true,errorMsg:'Minimum salary for '+cat+' is ₹'+minBasic.toLocaleString('en-IN')+'. Please enter at least ₹'+minBasic.toLocaleString('en-IN')+'.'};
-  // Basic = higher of: govt minimum OR 50% rule (always on desired, the base)
-  const basic=Math.max(minBasic,Math.ceil(desired*0.5));
-  // HRA: optional, auto-kill if doesn't fit
+
+  // Determine gross salary upfront (for 50% rule and compliance)
+  // When meal is "add", it's still part of total compensation for compliance checks
+  let gross=mealPolicy==='add'?desired+mealAllow:desired;
+
+  // Basic = higher of: govt minimum OR 50% of (final) gross
+  let basic=Math.max(minBasic,Math.ceil(gross*0.5));
+
+  // HRA: optional, auto-adjust down if needed
   const hraCandidate=Math.round(basic*(cfg.hraPercent||20)/100);
-  // HRA fit check: for 'add', meal not counted in base; for 'deduct', meal within base
-  const hraFitCheck=mealPolicy==='add'?(desired-basic-hraCandidate-daAllow):(desired-basic-hraCandidate-mealAllow-daAllow);
+  // HRA fits if: basic + hra + da + meal + spl >= 0  (there's room for spl allow)
+  const hraFits=(gross-basic-hraCandidate-mealAllow-daAllow)>=0;
   let hra=0,hraKilled=false;
-  if(hraWanted){if(hraFitCheck>=0){hra=hraCandidate;}else{hraKilled=true;hra=0;}}
-  // Special allowance and gross based on meal policy
-  let gross,splAllow;
-  if(mealPolicy==='add'){
-    // Meal is ADDITIONAL — structure base salary without meal, add meal on top
-    splAllow=Math.max(0,desired-basic-hra-daAllow);
-    gross=desired+mealAllow;
-  }else{
-    // Meal is INCLUDED — meal comes out of the desired total
-    splAllow=Math.max(0,desired-basic-hra-mealAllow-daAllow);
-    gross=desired;
-  }
-  // Employee Deductions on gross
+  if(hraWanted){if(hraFits){hra=hraCandidate;}else{hraKilled=true;hra=0;}}
+
+  // Special allowance: whatever's left after basic, hra, meal, da
+  // Meal ALWAYS deducts from spl allow (whether "add" or "deduct" mode)
+  const splAllow=Math.max(0,gross-basic-hra-mealAllow-daAllow);
+  // Employee Deductions on gross (statutory)
   const epfWage=Math.min(basic,cfg.epfCeiling||15000);
   const pf=pfOn?Math.round(epfWage*(cfg.epfEmp||12)/100):0;
   const esiThreshold=cfg.esiThreshold||21000;
@@ -884,15 +883,24 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
   const profTax=cfg.profTax||200;
   const totalDed=pf+esi+profTax;
   const netPay=gross-totalDed;
+
   // Employer Contributions
   const erPf=pfOn?Math.round(epfWage*(cfg.epfEr||13)/100):0;
   const erEsi=esiApplicable?Math.round(gross*(cfg.esiEr||3.25)/100):0;
   const totalErContrib=erPf+erEsi;
   const esiThresholdStr=esiThreshold.toLocaleString('en-IN');
-  // Compliance (always against gross)
+
+  // Compliance validation (against final gross)
   const totalAllowances=hra+splAllow+mealAllow+daAllow;
-  const validate={basic:basic>=minBasic,fiftyPct:basic>=(gross*0.5),hraOk:hra===0||hra<=(basic*0.4),allowancesOk:totalAllowances<=(gross*0.5),noFraud:splAllow<(basic*2)};
+  const validate={
+    basic:basic>=minBasic,
+    fiftyPct:basic>=(gross*0.5),
+    hraOk:hra===0||hra<=(basic*0.4),
+    allowancesOk:totalAllowances<=(gross*0.5),
+    noFraud:splAllow<(basic*2)
+  };
   const isCompliant=Object.values(validate).every(v=>v);
+
   return{basic,hra,splAllow,mealAllow,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,erPf,erEsi,totalErContrib,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,pfOn,error:false};
 }
 
