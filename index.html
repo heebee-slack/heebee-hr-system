@@ -864,16 +864,27 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
   // Basic = higher of: govt minimum OR 50% of (final) gross
   let basic=Math.max(minBasic,Math.ceil(gross*0.5));
 
+  // Meal allowance cap: max 10% of basic
+  const mealCap=Math.round(basic*0.1);
+  let mealAllowCapped=Math.min(mealAllow,mealCap);
+
+  // Recalculate gross if meal was capped and in "add" mode
+  if(mealAllowCapped<mealAllow && mealPolicy==='add'){
+    gross=desired+mealAllowCapped;
+    // Recalculate basic if gross changed
+    basic=Math.max(minBasic,Math.ceil(gross*0.5));
+  }
+
   // HRA: optional, auto-adjust down if needed
   const hraCandidate=Math.round(basic*(cfg.hraPercent||20)/100);
   // HRA fits if: basic + hra + da + meal + spl >= 0  (there's room for spl allow)
-  const hraFits=(gross-basic-hraCandidate-mealAllow-daAllow)>=0;
+  const hraFits=(gross-basic-hraCandidate-mealAllowCapped-daAllow)>=0;
   let hra=0,hraKilled=false;
   if(hraWanted){if(hraFits){hra=hraCandidate;}else{hraKilled=true;hra=0;}}
 
   // Special allowance: whatever's left after basic, hra, meal, da
   // Meal ALWAYS deducts from spl allow (whether "add" or "deduct" mode)
-  const splAllow=Math.max(0,gross-basic-hra-mealAllow-daAllow);
+  const splAllow=Math.max(0,gross-basic-hra-mealAllowCapped-daAllow);
   // Employee Deductions on gross (statutory)
   const epfWage=Math.min(basic,cfg.epfCeiling||15000);
   const pf=pfOn?Math.round(epfWage*(cfg.epfEmp||12)/100):0;
@@ -891,7 +902,7 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
   const esiThresholdStr=esiThreshold.toLocaleString('en-IN');
 
   // Compliance validation (against final gross)
-  const totalAllowances=hra+splAllow+mealAllow+daAllow;
+  const totalAllowances=hra+splAllow+mealAllowCapped+daAllow;
   const validate={
     basic:basic>=minBasic,
     fiftyPct:basic>=(gross*0.5),
@@ -901,7 +912,7 @@ function computeSalary(cat,desired,mealAllow,daAllow,hraWanted,pfOn,mealPolicy,c
   };
   const isCompliant=Object.values(validate).every(v=>v);
 
-  return{basic,hra,splAllow,mealAllow,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,erPf,erEsi,totalErContrib,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,pfOn,error:false};
+  return{basic,hra,splAllow,mealAllow:mealAllowCapped,daAllow,desired,gross,pf,esi,esiApplicable,esiThresholdStr,profTax,totalDed,netPay,erPf,erEsi,totalErContrib,hraKilled,hraCandidate,minBasic,validate,isCompliant,mealPolicy,pfOn,mealCapped:mealAllowCapped<mealAllow,error:false};
 }
 
 function renderSalaryResult(r,pfOn,mealPolicy,cfg,resultElId){
@@ -913,6 +924,7 @@ function renderSalaryResult(r,pfOn,mealPolicy,cfg,resultElId){
   const mpl=mealPolicy==='add'?'➕ Added':'➖ Deducted';
   el.innerHTML=`
 ${r.hraKilled?`<div style="margin-bottom:10px;padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;color:#f59e0b;font-size:.78rem">⚠️ HRA auto-disabled — salary ₹${r.desired.toLocaleString('en-IN')} is too low to include HRA (₹${r.hraCandidate.toLocaleString('en-IN')}) alongside Basic ₹${r.basic.toLocaleString('en-IN')}. Minimum salary to include HRA: ₹${(r.basic+r.hraCandidate+r.mealAllow+r.daAllow).toLocaleString('en-IN')}</div>`:''}
+${r.mealCapped?`<div style="margin-bottom:10px;padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;color:#f59e0b;font-size:.78rem">ℹ️ Meal Allowance capped at 10% of Basic (₹${r.mealAllow.toLocaleString('en-IN')}) — Govt limit</div>`:''}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
 <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:14px">
 <div style="font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:2px;color:#10b981;margin-bottom:10px">EARNINGS</div>
