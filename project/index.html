@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Heebee HR — Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;600&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .55s cubic-bezier(.4,0,.2,1),color .55s cubic-bezier(.4,0,.2,1)}
+body.light{--bg:#f5f5f7;--bg2:#fff;--surface:rgba(255,255,255,0.75);--surface2:rgba(255,255,255,0.55);--border:rgba(255,255,255,0.9);--border2:rgba(0,0,0,0.06);--text:#1d1d1f;--text2:#424245;--text3:#86868b;--shadow:0 4px 24px rgba(0,0,0,0.06);--shadow2:0 8px 40px rgba(0,0,0,0.10);--btn-bg:#1d1d1f;--btn-fg:#fff;--sec-icon:#b8860b;--input-bg:rgba(255,255,255,0.8);--input-bdr:rgba(0,0,0,0.1);--noise-op:0.035;--sidebar-bg:rgba(255,255,255,0.82);--gold:#b8860b;--gold2:#f0c040}
+body.dark{--bg:#0a0a0f;--bg2:#111118;--surface:rgba(255,255,255,0.06);--surface2:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.06);--text:#f5f5f7;--text2:#d2d2d7;--text3:#86868b;--shadow:0 4px 24px rgba(0,0,0,0.3);--shadow2:0 8px 40px rgba(0,0,0,0.5);--btn-bg:#f5f5f7;--btn-fg:#0a0a0f;--sec-icon:#f0c040;--input-bg:rgba(255,255,255,0.07);--input-bdr:rgba(255,255,255,0.12);--noise-op:0.04;--sidebar-bg:rgba(10,10,15,0.9);--gold:#f0c040;--gold2:#f0c040}
+body{background:var(--bg);color:var(--text)}
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");opacity:var(--noise-op);transition:opacity .55s ease}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbDrift ease-in-out infinite alternate;transition:opacity .6s,background .6s}
+body.light .orb1{width:500px;height:500px;top:-80px;right:-80px;background:radial-gradient(circle,#e8d5b0,transparent 70%);opacity:.5;animation-duration:14s}
+body.light .orb2{width:400px;height:400px;bottom:-60px;left:-60px;background:radial-gradient(circle,#d4c4a0,transparent 70%);opacity:.4;animation-duration:18s;animation-delay:5s}
+body.light .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-gradient(circle,#ede8df,transparent 70%);opacity:.35;animation-duration:22s;animation-delay:10s}
+body.dark .orb1{width:500px;height:500px;top:-80px;right:-80px;background:radial-gradient(circle,#1a2a4a,transparent 70%);opacity:.7;animation-duration:14s}
+body.dark .orb2{width:400px;height:400px;bottom:-60px;left:-60px;background:radial-gradient(circle,#0d1a30,transparent 70%);opacity:.6;animation-duration:18s;animation-delay:5s}
+body.dark .orb3{width:280px;height:280px;top:45%;left:50%;background:radial-gradient(circle,#1c1c30,transparent 70%);opacity:.5;animation-duration:22s;animation-delay:10s}
+@keyframes orbDrift{0%{transform:translate(0,0)}100%{transform:translate(28px,18px)}}
+
+/* LOGIN */
+.login-wrap{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow2);padding:48px 40px;width:100%;max-width:400px;text-align:center}
+.login-brand{font-weight:200;font-size:1.6rem;letter-spacing:8px;text-transform:uppercase;color:var(--text);margin-bottom:4px}
+.login-sub{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:40px}
+.login-label{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;text-align:left;margin-bottom:6px}
+.login-input{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;margin-bottom:16px;transition:border-color .2s}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:14px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s}
+.login-btn:hover{opacity:.85;transform:translateY(-1px)}
+.login-err{color:#e05;font-size:.78rem;margin-top:8px;min-height:20px}
+
+/* APP LAYOUT */
+.app-layout{display:flex;min-height:100vh;position:relative;z-index:10}
+.sidebar{width:220px;min-height:100vh;background:var(--sidebar-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-right:1px solid var(--border2);display:flex;flex-direction:column;padding:32px 0;position:fixed;left:0;top:0;bottom:0;z-index:50;transition:background .55s}
+.sidebar-brand{padding:0 24px 32px;border-bottom:1px solid var(--border2)}
+.sidebar-brand-name{font-weight:200;font-size:1.1rem;letter-spacing:6px;text-transform:uppercase;color:var(--text)}
+.sidebar-brand-sub{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.sidebar-nav{flex:1;padding:24px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;transition:background .2s,color .2s;border-radius:0;position:relative;font-size:.85rem;font-weight:400;color:var(--text3)}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface);color:var(--text);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--gold);border-radius:0 2px 2px 0}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-label{font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:2px;text-transform:uppercase}
+.nav-soon{font-family:'Space Mono',monospace;font-size:.4rem;letter-spacing:1px;background:var(--surface2);border:1px solid var(--border2);padding:2px 6px;border-radius:20px;margin-left:auto;color:var(--text3)}
+.sidebar-footer{padding:16px 24px;border-top:1px solid var(--border2)}
+.theme-btn{background:none;border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:all .2s;width:100%}
+.theme-btn:hover{border-color:var(--gold);color:var(--gold)}
+.logout-btn{background:none;border:none;font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;width:100%;text-align:left;padding:8px 0;transition:color .2s}
+.logout-btn:hover{color:#e05}
+
+/* MAIN CONTENT */
+.main{margin-left:220px;flex:1;padding:40px 40px 80px;min-height:100vh}
+.page-header{margin-bottom:32px}
+.page-eyebrow{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.page-title{font-weight:200;font-size:1.8rem;letter-spacing:2px;color:var(--text)}
+.page-rule{height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-top:16px;opacity:.4}
+
+/* TABS */
+.tabs-wrap{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:60px;padding:4px;display:inline-flex;gap:4px;margin-bottom:28px}
+.tab-btn{padding:9px 22px;border-radius:60px;border:none;background:transparent;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:all .25s}
+.tab-btn.active{background:var(--btn-bg);color:var(--btn-fg)}
+
+/* GLASS CARD */
+.glass-card{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);transition:background .5s,border-color .5s,box-shadow .3s;padding:28px}
+.glass-card:hover{box-shadow:var(--shadow2)}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border2);border-radius:18px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--surface2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:rgba(184,134,11,0.05)}
+.upload-icon{font-size:2rem;color:var(--gold);margin-bottom:12px}
+.upload-title{font-weight:300;font-size:1rem;color:var(--text);margin-bottom:6px}
+.upload-sub{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.file-input{display:none}
+
+/* SCANNING STATE */
+.scan-progress{text-align:center;padding:40px}
+.scan-spinner{width:48px;height:48px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3)}
+
+/* CANDIDATE CARD POPUP */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.popup-card{background:var(--bg2);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,0.3);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .35s cubic-bezier(.4,0,.2,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.popup-header{padding:28px 28px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.popup-close{background:none;border:none;font-size:1.4rem;color:var(--text3);cursor:pointer;padding:4px;transition:color .2s}
+.popup-close:hover{color:var(--text)}
+.popup-body{padding:20px 28px 28px}
+.candidate-name{font-weight:200;font-size:1.6rem;letter-spacing:2px;color:var(--text)}
+.candidate-role{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:4px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.info-item{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:12px 14px}
+.info-label{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.info-val{font-size:.85rem;font-weight:400;color:var(--text)}
+.screening-box{background:linear-gradient(135deg,rgba(184,134,11,0.08),rgba(184,134,11,0.03));border:1px solid rgba(184,134,11,0.2);border-radius:14px;padding:16px 18px;margin-top:16px}
+.screening-title{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.screening-item{font-size:.82rem;font-weight:300;color:var(--text2);padding:4px 0;padding-left:16px;position:relative;line-height:1.5}
+.screening-item::before{content:'◈';position:absolute;left:0;color:var(--gold);font-size:.6rem}
+.popup-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn-primary{background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s;flex:1;min-width:140px}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-ghost{background:none;color:var(--text2);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;flex:1;min-width:140px}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-whatsapp{background:#25d366;color:#fff;border:none;border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;flex:1;min-width:140px}
+.btn-whatsapp:hover{opacity:.85}
+.btn-danger{background:none;color:#e05;border:1px solid rgba(238,0,85,0.3);border-radius:12px;padding:12px 20px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;flex:1;min-width:140px}
+.btn-danger:hover{background:rgba(238,0,85,0.08)}
+
+/* DIRECTORY */
+.search-bar{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;margin-bottom:16px;transition:border-color .2s}
+.search-bar:focus{border-color:var(--gold)}
+.filter-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-select{background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:10px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:1.5px;color:var(--text2);outline:none;cursor:pointer;transition:border-color .2s}
+.filter-select:focus{border-color:var(--gold)}
+.candidates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.cand-card{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:18px;padding:18px 20px;cursor:pointer;transition:all .25s}
+.cand-card:hover{box-shadow:var(--shadow2);transform:translateY(-2px)}
+.cand-name{font-weight:600;font-size:.92rem;color:var(--text);margin-bottom:2px}
+.cand-role-tag{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.cand-meta{font-size:.78rem;color:var(--text3);margin-bottom:2px}
+.status-pill{display:inline-block;font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-top:10px}
+.status-applied{background:rgba(59,130,246,0.12);color:#3b82f6}
+.status-shortlisted{background:rgba(245,158,11,0.12);color:#f59e0b}
+.status-hired{background:rgba(16,185,129,0.12);color:#10b981}
+.status-rejected{background:rgba(239,68,68,0.12);color:#ef4444}
+.status-resigned{background:rgba(107,114,128,0.12);color:#6b7280}
+
+/* EMPLOYEE PROFILE */
+.emp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.emp-row{background:var(--surface);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:16px}
+.emp-row:hover{box-shadow:var(--shadow2)}
+.emp-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),rgba(184,134,11,0.3));display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.9rem;color:#fff;flex-shrink:0}
+.emp-info{flex:1}
+.emp-id-tag{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;color:var(--gold)}
+.emp-name-main{font-weight:600;font-size:.92rem;color:var(--text)}
+.emp-pos{font-size:.78rem;color:var(--text3)}
+.emp-outlet-tag{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:1.5px;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);padding:3px 8px;border-radius:20px;color:var(--text3)}
+
+/* PROFILE DETAIL VIEW */
+.profile-back{background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);cursor:pointer;padding:0 0 20px;transition:color .2s;display:flex;align-items:center;gap:6px}
+.profile-back:hover{color:var(--gold)}
+.profile-hero{background:var(--surface);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--border);border-radius:22px;padding:28px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.profile-avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),rgba(184,134,11,0.4));display:flex;align-items:center;justify-content:center;font-weight:200;font-size:1.4rem;color:#fff;flex-shrink:0}
+.profile-name-lg{font-weight:200;font-size:1.5rem;letter-spacing:2px;color:var(--text)}
+.profile-id{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;color:var(--gold)}
+.section-title{font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border2),transparent)}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.detail-item{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px}
+.detail-label{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.detail-val{font-size:.85rem;font-weight:400;color:var(--text)}
+.remun-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.remun-table th{font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border2);text-align:left}
+.remun-table td{padding:10px 12px;border-bottom:1px solid var(--border2);color:var(--text2)}
+.remun-table tr:last-child td{border-bottom:none}
+.notes-area{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:var(--text);outline:none;resize:vertical;min-height:80px;transition:border-color .2s}
+.notes-area:focus{border-color:var(--gold)}
+
+/* PAYROLL UPLOAD */
+.upload-tabs{display:flex;gap:10px;margin-bottom:24px}
+.upload-tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all .25s;text-align:center}
+.upload-tab.active{border-color:var(--gold);background:rgba(184,134,11,0.06)}
+.upload-tab-icon{font-size:1.4rem;color:var(--text3);margin-bottom:8px;transition:color .25s}
+.upload-tab.active .upload-tab-icon{color:var(--gold)}
+.upload-tab-label{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);transition:color .25s}
+.upload-tab.active .upload-tab-label{color:var(--gold)}
+.match-report{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
+.match-good{color:#10b981;font-size:.82rem;margin-bottom:4px}
+.match-bad{color:#ef4444;font-size:.82rem}
+
+/* SETTINGS */
+.settings-section{margin-bottom:28px}
+.settings-label{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:8px}
+.settings-input{width:100%;background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:12px;padding:12px 16px;font-family:'Space Mono',monospace;font-size:.7rem;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:10px}
+.settings-input:focus{border-color:var(--gold)}
+.save-btn{background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:12px;padding:12px 28px;font-family:'Nunito Sans',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.save-btn:hover{opacity:.85}
+.toast{position:fixed;bottom:32px;right:32px;background:var(--btn-bg);color:var(--btn-fg);padding:12px 20px;border-radius:12px;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;z-index:9999;animation:toastIn .3s ease;box-shadow:var(--shadow2)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel{display:none}
+.panel.active{display:block;animation:panelReveal .5s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes panelReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase}
+.hire-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hire-form-field{display:flex;flex-direction:column;gap:6px}
+.hire-form-field label{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.hire-form-field input,.hire-form-field select{background:var(--input-bg);border:1px solid var(--input-bdr);border-radius:10px;padding:10px 14px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.hire-form-field input:focus,.hire-form-field select:focus{border-color:var(--gold)}
+.full-width{grid-column:1/-1}
+@media(max-width:768px){
+  .sidebar{width:60px;padding:20px 0}
+  .sidebar-brand,.nav-label,.nav-soon,.sidebar-footer{display:none}
+  .nav-item{padding:16px;justify-content:center}
+  .main{margin-left:60px;padding:20px 16px 80px}
+  .info-grid{grid-template-columns:1fr}
+  .hire-form{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="light">
+<div class="bg-layer"><div class="bg-orb orb1"></div><div class="bg-orb orb2"></div><div class="bg-orb orb3"></div></div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-brand">Heebee</div>
+    <div class="login-sub">HR System</div>
+    <label class="login-label">Email</label>
+    <input class="login-input" type="email" id="loginEmail" placeholder="hr@heebeecoffee.com" autocomplete="email">
+    <label class="login-label">PIN</label>
+    <input class="login-input" type="password" id="loginPin" placeholder="••••" maxlength="4" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Enter System</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app-layout" id="appLayout" style="display:none">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Heebee</div>
+      <div class="sidebar-brand-sub">HR System</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPanel('onboarding',this)">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Onboarding</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('payroll',this)">
+        <span class="nav-icon">◇</span>
+        <span class="nav-label">Payroll</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('employees',this)">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">Employees</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('reports',this)" style="opacity:.5">
+        <span class="nav-icon">✦</span>
+        <span class="nav-label">Reports</span>
+        <span class="nav-soon">Soon</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('settings',this)">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Settings</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-btn" onclick="toggleTheme()">◐ Theme</button>
+      <button class="logout-btn" onclick="doLogout()">↩ Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ONBOARDING PANEL -->
+    <div class="panel active" id="panel-onboarding">
+      <div class="page-header">
+        <div class="page-eyebrow">Heebee HR</div>
+        <div class="page-title">Onboarding</div>
+        <div class="page-rule"></div>
+      </div>
+      <div class="tabs-wrap">
+        <button class="tab-btn active" onclick="showOTab('scan',this)">◈ Scan Resume</button>
+        <button class="tab-btn" onclick="showOTab('directory',this)">◇ Directory</button>
+        <button class="tab-btn" onclick="showOTab('empprofiles',this)">◎ Employees</button>
+      </div>
+
+      <!-- SCAN TAB -->
+      <div id="otab-scan">
+        <div class="glass-card" style="max-width:600px">
+          <div class="upload-zone" id="dropZone" onclick="document.getElementById('resumeFile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+            <div class="upload-icon">◈</div>
+            <div class="upload-title">Drop resume here</div>
+            <div class="upload-sub" style="margin-top:6px">PDF · JPG · PNG · tap to browse</div>
+          </div>
+          <input type="file" id="resumeFile" class="file-input" accept=".pdf,.jpg,.jpeg,.png" onchange="handleResumeFile(this.files[0])">
+          <div id="scanState" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- DIRECTORY TAB -->
+      <div id="otab-directory" style="display:none">
+        <input class="search-bar" type="text" placeholder="Search by name, role, phone..." id="candSearch" oninput="renderDirectory()">
+        <div class="filter-row">
+          <select class="filter-select" id="fStatus" onchange="renderDirectory()">
+            <option value="">All Status</option>
+            <option value="Applied">Applied</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Hired">Hired</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <select class="filter-select" id="fOutlet" onchange="renderDirectory()">
+            <option value="">All Outlets</option>
+            <option value="GHB">GHB — Sarabha Nagar</option>
+            <option value="SHB">SHB — Ghumar Mandi</option>
+            <option value="JLD">JLD — Jalandhar</option>
+          </select>
+        </div>
+        <div id="candidatesGrid" class="candidates-grid"></div>
+      </div>
+
+      <!-- EMPLOYEE PROFILES TAB -->
+      <div id="otab-empprofiles" style="display:none">
+        <div id="empListView">
+          <div class="filter-row">
+            <select class="filter-select" id="empOutletFilter" onchange="renderEmployeeList()">
+              <option value="">All Outlets</option>
+              <option value="GHB">GHB</option>
+              <option value="SHB">SHB</option>
+              <option value="JLD">JLD</option>
+            </select>
+            <select class="filter-select" id="empStatusFilter" onchange="renderEmployeeList()">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Resigned">Resigned</option>
+              <option value="Terminated">Terminated</option>
+            </select>
+          </div>
+          <div id="employeeListEl" class="emp-list"></div>
+        </div>
+        <div id="empDetailView" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- PAYROLL PANEL -->
+    <div class="panel" id="panel-payroll">
+      <div class="page-header">
+        <div class="page-eyebrow">Heebee HR</div>
+        <div class="page-title">Payroll Uploads</div>
+        <div class="page-rule"></div>
+      </div>
+      <div class="upload-tabs">
+        <div class="upload-tab active" id="ptab-bank-btn" onclick="showPTab('bank')">
+          <div class="upload-tab-icon">◇</div>
+          <div class="upload-tab-label">Bank Transfer Sheet</div>
+        </div>
+        <div class="upload-tab" id="ptab-govt-btn" onclick="showPTab('govt')">
+          <div class="upload-tab-icon">◈</div>
+          <div class="upload-tab-label">Govt Salary Sheet</div>
+        </div>
+      </div>
+
+      <!-- BANK UPLOAD -->
+      <div id="ptab-bank">
+        <div class="glass-card" style="max-width:600px">
+          <div class="section-title">Bank Transfer Sheet</div>
+          <p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload the Excel file sent to the bank. Columns: Employee Name · Account No. · IFSC · Bank Name · Amount</p>
+          <div class="upload-zone" onclick="document.getElementById('bankFile').click()">
+            <div class="upload-icon">◇</div>
+            <div class="upload-title">Upload Bank Transfer Excel</div>
+            <div class="upload-sub" style="margin-top:6px">.xlsx · .xls · tap to browse</div>
+          </div>
+          <input type="file" id="bankFile" class="file-input" accept=".xlsx,.xls" onchange="handleBankUpload(this.files[0])">
+          <div id="bankReport"></div>
+        </div>
+      </div>
+
+      <!-- GOVT UPLOAD -->
+      <div id="ptab-govt" style="display:none">
+        <div class="glass-card" style="max-width:600px">
+          <div class="section-title">Govt Salary Sheet</div>
+          <p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;font-weight:300">Upload the labour-law compliant salary sheet. Must include: Employee Name · Basic · HRA · DA · Special Allowance · Gross · Deductions · Net Pay</p>
+          <div class="upload-zone" onclick="document.getElementById('govtFile').click()">
+            <div class="upload-icon">◈</div>
+            <div class="upload-title">Upload Govt Salary Sheet</div>
+            <div class="upload-sub" style="margin-top:6px">.xlsx · .xls · tap to browse</div>
+          </div>
+          <input type="file" id="govtFile" class="file-input" accept=".xlsx,.xls" onchange="handleGovtUpload(this.files[0])">
+          <div id="govtReport"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES PANEL (full list) -->
+    <div class="panel" id="panel-employees">
+      <div class="page-header">
+        <div class="page-eyebrow">Heebee HR</div>
+        <div class="page-title">All Employees</div>
+        <div class="page-rule"></div>
+      </div>
+      <div id="allEmpView">
+        <div class="filter-row">
+          <input class="search-bar" type="text" placeholder="Search employees..." id="empSearch" oninput="renderAllEmployees()" style="flex:1;margin-bottom:0">
+          <select class="filter-select" id="allEmpOutlet" onchange="renderAllEmployees()">
+            <option value="">All Outlets</option>
+            <option value="GHB">GHB</option>
+            <option value="SHB">SHB</option>
+            <option value="JLD">JLD</option>
+          </select>
+        </div>
+        <div id="allEmpList" class="emp-list" style="margin-top:16px"></div>
+      </div>
+      <div id="allEmpDetail" style="display:none"></div>
+    </div>
+
+    <!-- REPORTS PANEL -->
+    <div class="panel" id="panel-reports">
+      <div class="page-header">
+        <div class="page-eyebrow">Heebee HR</div>
+        <div class="page-title">Reports</div>
+        <div class="page-rule"></div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-text">Coming in Phase 2</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="panel" id="panel-settings">
+      <div class="page-header">
+        <div class="page-eyebrow">Heebee HR</div>
+        <div class="page-title">Settings</div>
+        <div class="page-rule"></div>
+      </div>
+      <div class="glass-card" style="max-width:500px">
+        <div class="settings-section">
+          <div class="section-title">API Keys</div>
+          <label class="settings-label">Anthropic API Key</label>
+          <input class="settings-input" type="password" id="setAnthropicKey" placeholder="sk-ant-...">
+          <label class="settings-label">Firebase Config (JSON)</label>
+          <textarea class="settings-input" id="setFirebaseConfig" rows="6" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+          <button class="save-btn" onclick="saveSettings()">Save & Connect</button>
+          <div id="settingsStatus" style="margin-top:10px;font-family:Space Mono,monospace;font-size:.48rem;letter-spacing:2px;color:var(--text3)"></div>
+        </div>
+        <div class="settings-section">
+          <div class="section-title">Access</div>
+          <p style="font-size:.8rem;color:var(--text3);font-weight:300">HR User: hr@heebeecoffee.com · PIN 1234<br>Owner: gavish@heebeecoffee.com · PIN 0000</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- CANDIDATE POPUP -->
+<div class="overlay" id="candidateOverlay" style="display:none" onclick="if(event.target===this)closePopup()">
+  <div class="popup-card" id="candidatePopup"></div>
+</div>
+
+<!-- HIRE MODAL -->
+<div class="overlay" id="hireOverlay" style="display:none" onclick="if(event.target===this)closeHireModal()">
+  <div class="popup-card" id="hireModal" style="max-width:700px"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, push, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+window._fbApp = null;
+window._db = null;
+window._fbMod = { initializeApp, getDatabase, ref, set, get, push, update, onValue };
+
+window.initFirebase = function(config) {
+  try {
+    if(window._fbApp) return true;
+    window._fbApp = initializeApp(config);
+    window._db = getDatabase(window._fbApp);
+    return true;
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    return false;
+  }
+};
+
+window.dbSet = async function(path, data) {
+  if(!window._db) return false;
+  try { await set(window._fbMod.ref(window._db, path), data); return true; }
+  catch(e) { console.error(e); return false; }
+};
+
+window.dbGet = async function(path) {
+  if(!window._db) return null;
+  try {
+    const snap = await get(window._fbMod.ref(window._db, path));
+    return snap.exists() ? snap.val() : null;
+  } catch(e) { console.error(e); return null; }
+};
+
+window.dbPush = async function(path, data) {
+  if(!window._db) return null;
+  try {
+    const r = await push(window._fbMod.ref(window._db, path), data);
+    return r.key;
+  } catch(e) { console.error(e); return null; }
+};
+
+window.dbUpdate = async function(path, data) {
+  if(!window._db) return false;
+  try { await update(window._fbMod.ref(window._db, path), data); return true; }
+  catch(e) { console.error(e); return false; }
+};
+</script>
+
+<script>
+// ─── AUTH ───────────────────────────────────────────
+const USERS = {
+  'hr@heebeecoffee.com': '1234',
+  'gavish@heebeecoffee.com': '0000',
+  'nitigya@heebeecoffee.com': '1111'
+};
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pin = document.getElementById('loginPin').value.trim();
+  if(USERS[email] && USERS[email] === pin) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'flex';
+    loadSettings();
+    renderDirectory();
+    renderEmployeeList();
+    renderAllEmployees();
+  } else {
+    document.getElementById('loginErr').textContent = 'Invalid credentials';
+  }
+}
+
+document.getElementById('loginPin').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('appLayout').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+// ─── THEME ──────────────────────────────────────────
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  document.body.classList.toggle('light');
+}
+
+// ─── PANEL NAV ──────────────────────────────────────
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='employees') renderAllEmployees();
+}
+
+function showOTab(name, el) {
+  ['scan','directory','empprofiles'].forEach(t => {
+    document.getElementById('otab-'+t).style.display = 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('otab-'+name).style.display = 'block';
+  if(el) el.classList.add('active');
+  if(name==='directory') renderDirectory();
+  if(name==='empprofiles') renderEmployeeList();
+}
+
+function showPTab(name) {
+  ['bank','govt'].forEach(t => {
+    document.getElementById('ptab-'+t).style.display = 'none';
+    document.getElementById('ptab-'+t+'-btn').classList.remove('active');
+  });
+  document.getElementById('ptab-'+name).style.display = 'block';
+  document.getElementById('ptab-'+name+'-btn').classList.add('active');
+}
+
+// ─── SETTINGS ───────────────────────────────────────
+function loadSettings() {
+  const key = localStorage.getItem('hb_hr_anthropic');
+  const fbConf = localStorage.getItem('hb_hr_firebase');
+  if(key) document.getElementById('setAnthropicKey').value = key;
+  if(fbConf) document.getElementById('setFirebaseConfig').value = fbConf;
+  if(fbConf) {
+    try { window.initFirebase(JSON.parse(fbConf)); } catch(e) {}
+  }
+}
+
+function saveSettings() {
+  const key = document.getElementById('setAnthropicKey').value.trim();
+  const fbConf = document.getElementById('setFirebaseConfig').value.trim();
+  const st = document.getElementById('settingsStatus');
+  if(key) localStorage.setItem('hb_hr_anthropic', key);
+  if(fbConf) {
+    try {
+      const cfg = JSON.parse(fbConf);
+      localStorage.setItem('hb_hr_firebase', fbConf);
+      const ok = window.initFirebase(cfg);
+      st.textContent = ok ? '◈ Firebase connected · API key saved' : '✗ Firebase error — check config';
+      st.style.color = ok ? 'var(--gold)' : '#e05';
+    } catch(e) {
+      st.textContent = '✗ Invalid JSON in Firebase config';
+      st.style.color = '#e05';
+    }
+  } else {
+    st.textContent = '◈ API key saved';
+    st.style.color = 'var(--gold)';
+  }
+  showToast('Settings saved');
+}
+
+// ─── TOAST ──────────────────────────────────────────
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ─── RESUME PARSING ─────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if(f) handleResumeFile(f);
+}
+
+async function handleResumeFile(file) {
+  if(!file) return;
+  const apiKey = localStorage.getItem('hb_hr_anthropic');
+  if(!apiKey) {
+    showToast('Add Anthropic API key in Settings first');
+    showPanel('settings', document.querySelectorAll('.nav-item')[4]);
+    return;
+  }
+  const scanState = document.getElementById('scanState');
+  scanState.style.display = 'block';
+  scanState.innerHTML = `<div class="scan-progress"><div class="scan-spinner"></div><div class="scan-text">Scanning resume with AI...</div></div>`;
+
+  try {
+    const b64 = await fileToBase64(file);
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+
+    let msgContent = [];
+    if(isPdf) {
+      msgContent = [
+        { type:'document', source:{ type:'base64', media_type:'application/pdf', data:b64 } },
+        { type:'text', text: RESUME_PROMPT }
+      ];
+    } else if(isImage) {
+      msgContent = [
+        { type:'image', source:{ type:'base64', media_type:file.type, data:b64 } },
+        { type:'text', text: RESUME_PROMPT }
+      ];
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-opus-4-5', max_tokens:1500, messages:[{ role:'user', content:msgContent }] })
+    });
+
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const text = data.content.map(c => c.text||'').join('');
+    let parsed;
+    try { parsed = JSON.parse(text.replace(/```json|```/g,'')); }
+    catch(e) { throw new Error('Could not parse AI response'); }
+
+    scanState.style.display = 'none';
+    showCandidatePopup(parsed, null);
+
+  } catch(err) {
+    scanState.innerHTML = `<div style="padding:20px;text-align:center;color:#e05;font-size:.82rem">Error: ${err.message}</div>`;
+  }
+}
+
+const RESUME_PROMPT = `You are an HR screening AI for Heebee Coffee Pvt. Ltd., a specialty café chain in Punjab, India.
+Analyze this resume and respond ONLY with a valid JSON object — no markdown, no preamble.
+{
+  "name": "Full name",
+  "phone": "Mobile number with country code if present, else just digits",
+  "email": "Email address",
+  "address": "City/area if mentioned",
+  "current_role": "Current or last job title",
+  "experience_years": "Total years of work experience as a number",
+  "skills": ["skill1","skill2","skill3"],
+  "education": "Highest qualification",
+  "past_employers": ["Company 1","Company 2"],
+  "languages": ["Hindi","English","Punjabi"],
+  "screening": {
+    "hire_recommendation": "Should Hire / Maybe / Pass",
+    "reasons": ["Reason 1","Reason 2","Reason 3"],
+    "suggested_role": "Best role at a café (Barista, Floor Manager, Cashier, etc.)",
+    "red_flags": ["Any concern or empty string if none"]
+  }
+}`;
+
+function fileToBase64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('File read failed'));
+    r.readAsDataURL(file);
+  });
+}
+
+// ─── CANDIDATE POPUP ────────────────────────────────
+let _currentCandidate = null;
+
+function showCandidatePopup(data, existingId) {
+  _currentCandidate = { ...data, _existingId: existingId };
+  const s = data.screening || {};
+  const recColor = s.hire_recommendation==='Should Hire' ? '#10b981' : s.hire_recommendation==='Maybe' ? '#f59e0b' : '#ef4444';
+  const waNum = (data.phone||'').replace(/\D/g,'');
+  const waLink = waNum ? `https://wa.me/91${waNum}?text=Hello%20${encodeURIComponent(data.name||'')}%2C%20this%20is%20Heebee%20Coffee%20HR.%20Please%20share%20a%20recent%20passport-size%20photo%20at%20your%20earliest%20convenience.%20Thank%20you.` : '';
+
+  document.getElementById('candidatePopup').innerHTML = `
+    <div class="popup-header">
+      <div>
+        <div class="candidate-name">${data.name||'Unknown'}</div>
+        <div class="candidate-role">${data.current_role||'Role not specified'}</div>
+      </div>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Phone</div><div class="info-val">${data.phone||'—'}</div></div>
+        <div class="info-item"><div class="info-label">Email</div><div class="info-val">${data.email||'—'}</div></div>
+        <div class="info-item"><div class="info-label">Experience</div><div class="info-val">${data.experience_years||'—'} years</div></div>
+        <div class="info-item"><div class="info-label">Location</div><div class="info-val">${data.address||'—'}</div></div>
+        <div class="info-item"><div class="info-label">Education</div><div class="info-val">${data.education||'—'}</div></div>
+        <div class="info-item"><div class="info-label">Languages</div><div class="info-val">${(data.languages||[]).join(', ')||'—'}</div></div>
+      </div>
+      ${data.skills&&data.skills.length ? `<div style="margin-top:12px"><div class="info-label" style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Skills</div><div style="display:flex;flex-wrap:wrap;gap:6px">${data.skills.map(s=>`<span style="background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:.75rem;color:var(--text2)">${s}</span>`).join('')}</div></div>` : ''}
+      ${data.past_employers&&data.past_employers.length ? `<div style="margin-top:12px"><div class="info-label" style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Past Employers</div><div style="font-size:.82rem;color:var(--text2)">${data.past_employers.join(' · ')}</div></div>` : ''}
+      <div class="screening-box">
+        <div class="screening-title">◈ AI Screening — <span style="color:${recColor}">${s.hire_recommendation||'—'}</span></div>
+        <div style="font-family:Space Mono,monospace;font-size:.45rem;letter-spacing:2px;color:var(--text3);margin-bottom:8px">SUGGESTED ROLE: ${s.suggested_role||'—'}</div>
+        ${(s.reasons||[]).map(r=>`<div class="screening-item">${r}</div>`).join('')}
+        ${s.red_flags&&s.red_flags[0] ? `<div style="margin-top:8px;font-size:.75rem;color:#ef4444;font-weight:300">⚠ ${s.red_flags.join(' · ')}</div>` : ''}
+      </div>
+      <div class="popup-actions">
+        ${waLink ? `<a href="${waLink}" target="_blank" style="text-decoration:none;flex:1;min-width:140px"><button class="btn-whatsapp" style="width:100%">◎ WhatsApp</button></a>` : ''}
+        ${!existingId ? `<button class="btn-primary" onclick="saveToDirectory()">◈ Save to Directory</button>` : `<button class="btn-primary" onclick="openHireModal('${existingId}')">◎ Mark as Hired</button>`}
+        <button class="btn-ghost" onclick="closePopup()">Discard</button>
+      </div>
+    </div>`;
+  document.getElementById('candidateOverlay').style.display = 'flex';
+}
+
+function closePopup() { document.getElementById('candidateOverlay').style.display = 'none'; }
+
+async function saveToDirectory() {
+  if(!_currentCandidate) return;
+  const cand = {
+    ..._currentCandidate,
+    status: 'Applied',
+    outlet: '',
+    date_added: new Date().toISOString(),
+    _existingId: undefined
+  };
+  delete cand._existingId;
+  const id = await window.dbPush('candidates', cand);
+  if(id) {
+    showToast('Candidate saved to directory');
+    closePopup();
+    renderDirectory();
+    showOTab('directory', null);
+    document.querySelectorAll('.tab-btn')[1].click();
+  } else {
+    showToast('Firebase not connected — check Settings');
+  }
+}
+
+// ─── DIRECTORY ──────────────────────────────────────
+let _candidates = {};
+
+async function renderDirectory() {
+  _candidates = await window.dbGet('candidates') || {};
+  const grid = document.getElementById('candidatesGrid');
+  const q = (document.getElementById('candSearch')||{}).value?.toLowerCase()||'';
+  const fSt = (document.getElementById('fStatus')||{}).value||'';
+  const fOu = (document.getElementById('fOutlet')||{}).value||'';
+
+  let list = Object.entries(_candidates).map(([id,c])=>({id,...c}));
+  if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.current_role||'').toLowerCase().includes(q));
+  if(fSt) list = list.filter(c => c.status===fSt);
+  if(fOu) list = list.filter(c => c.outlet===fOu);
+  list.sort((a,b) => (b.date_added||'').localeCompare(a.date_added||''));
+
+  if(!list.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◇</div><div class="empty-text">No candidates yet</div></div>`; return; }
+  grid.innerHTML = list.map(c => `
+    <div class="cand-card" onclick="openCandidateDetail('${c.id}')">
+      <div class="cand-name">${c.name||'Unknown'}</div>
+      <div class="cand-role-tag">${c.current_role||'Role not specified'}</div>
+      <div class="cand-meta">📱 ${c.phone||'—'}</div>
+      <div class="cand-meta">✉ ${c.email||'—'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <span class="status-pill status-${(c.status||'applied').toLowerCase()}">${c.status||'Applied'}</span>
+        ${c.outlet ? `<span style="font-family:Space Mono,monospace;font-size:.42rem;color:var(--text3)">${c.outlet}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openCandidateDetail(id) {
+  const c = _candidates[id];
+  if(!c) return;
+  showCandidatePopup(c, id);
+}
+
+// ─── EMPLOYEE LIST ───────────────────────────────────
+let _employees = {};
+
+async function renderEmployeeList() {
+  _employees = await window.dbGet('employees') || {};
+  const el = document.getElementById('employeeListEl');
+  const fOu = (document.getElementById('empOutletFilter')||{}).value||'';
+  const fSt = (document.getElementById('empStatusFilter')||{}).value||'';
+  let list = Object.entries(_employees).map(([id,e])=>({id,...e}));
+  if(fOu) list = list.filter(e => e.outlet===fOu);
+  if(fSt) list = list.filter(e => e.status===fSt);
+  list.sort((a,b) => (a.emp_id||'').localeCompare(b.emp_id||''));
+  if(!list.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No employees yet — hire from directory</div></div>`; return; }
+  el.innerHTML = list.map(e => `
+    <div class="emp-row" onclick="openEmpDetail('${e.id}','onboarding')">
+      <div class="emp-avatar">${(e.name||'?').charAt(0).toUpperCase()}</div>
+      <div class="emp-info">
+        <div class="emp-id-tag">${e.emp_id||'—'}</div>
+        <div class="emp-name-main">${e.name||'—'}</div>
+        <div class="emp-pos">${e.position||'—'}</div>
+      </div>
+      <span class="emp-outlet-tag">${e.outlet||'—'}</span>
+      <span class="status-pill status-${(e.status||'active').toLowerCase()}">${e.status||'Active'}</span>
+    </div>`).join('');
+}
+
+async function renderAllEmployees() {
+  _employees = await window.dbGet('employees') || {};
+  const el = document.getElementById('allEmpList');
+  const q = (document.getElementById('empSearch')||{}).value?.toLowerCase()||'';
+  const fOu = (document.getElementById('allEmpOutlet')||{}).value||'';
+  let list = Object.entries(_employees).map(([id,e])=>({id,...e}));
+  if(q) list = list.filter(e => (e.name||'').toLowerCase().includes(q)||(e.emp_id||'').toLowerCase().includes(q)||(e.position||'').toLowerCase().includes(q));
+  if(fOu) list = list.filter(e => e.outlet===fOu);
+  list.sort((a,b) => (a.emp_id||'').localeCompare(b.emp_id||''));
+  if(!list.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-text">No employees found</div></div>`; return; }
+  el.innerHTML = list.map(e => `
+    <div class="emp-row" onclick="openEmpDetail('${e.id}','all')">
+      <div class="emp-avatar">${(e.name||'?').charAt(0).toUpperCase()}</div>
+      <div class="emp-info">
+        <div class="emp-id-tag">${e.emp_id||'—'}</div>
+        <div class="emp-name-main">${e.name||'—'}</div>
+        <div class="emp-pos">${e.position||'—'}</div>
+      </div>
+      <span class="emp-outlet-tag">${e.outlet||'—'}</span>
+      <span class="status-pill status-${(e.status||'active').toLowerCase()}">${e.status||'Active'}</span>
+    </div>`).join('');
+}
+
+// ─── HIRE MODAL ──────────────────────────────────────
+let _hiringCandId = null;
+
+function openHireModal(candidateId) {
+  _hiringCandId = candidateId;
+  const c = _candidates[candidateId] || _currentCandidate || {};
+  document.getElementById('hireModal').innerHTML = `
+    <div class="popup-header">
+      <div>
+        <div class="candidate-name">Hire: ${c.name||'Candidate'}</div>
+        <div class="candidate-role">Create Employee Profile</div>
+      </div>
+      <button class="popup-close" onclick="closeHireModal()">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="hire-form">
+        <div class="hire-form-field"><label>Outlet</label>
+          <select id="h_outlet"><option value="GHB">GHB — Sarabha Nagar</option><option value="SHB">SHB — Ghumar Mandi</option><option value="JLD">JLD — Jalandhar</option></select>
+        </div>
+        <div class="hire-form-field"><label>Position / Role</label>
+          <input id="h_position" value="${c.screening?.suggested_role||c.current_role||''}" placeholder="Barista, Floor Manager...">
+        </div>
+        <div class="hire-form-field"><label>Joining Date</label>
+          <input id="h_joining" type="date" value="${new Date().toISOString().slice(0,10)}">
+        </div>
+        <div class="hire-form-field"><label>Agreed Monthly CTC (₹)</label>
+          <input id="h_ctc" type="number" placeholder="18000">
+        </div>
+        <div class="hire-form-field"><label>Basic Pay (₹)</label>
+          <input id="h_basic" type="number" placeholder="10000">
+        </div>
+        <div class="hire-form-field"><label>HRA (₹)</label>
+          <input id="h_hra" type="number" placeholder="4000">
+        </div>
+        <div class="hire-form-field"><label>Aadhaar Number</label>
+          <input id="h_aadhaar" maxlength="12" placeholder="XXXXXXXXXXXX">
+        </div>
+        <div class="hire-form-field"><label>PAN Number</label>
+          <input id="h_pan" maxlength="10" placeholder="ABCDE1234F">
+        </div>
+        <div class="hire-form-field"><label>Bank Account No.</label>
+          <input id="h_account" placeholder="Account number">
+        </div>
+        <div class="hire-form-field"><label>IFSC Code</label>
+          <input id="h_ifsc" placeholder="HDFC0001234">
+        </div>
+        <div class="hire-form-field"><label>Bank Name</label>
+          <input id="h_bank" placeholder="HDFC Bank">
+        </div>
+        <div class="hire-form-field full-width"><label>HR Notes</label>
+          <input id="h_notes" placeholder="Any onboarding notes...">
+        </div>
+      </div>
+      <div class="popup-actions" style="margin-top:20px">
+        <button class="btn-primary" onclick="confirmHire()">◈ Confirm & Create Employee</button>
+        <button class="btn-ghost" onclick="closeHireModal()">Cancel</button>
+      </div>
+    </div>`;
+  closePopup();
+  document.getElementById('hireOverlay').style.display = 'flex';
+}
+
+function closeHireModal() { document.getElementById('hireOverlay').style.display = 'none'; }
+
+async function confirmHire() {
+  const outlet = document.getElementById('h_outlet').value;
+  const position = document.getElementById('h_position').value.trim();
+  const joining = document.getElementById('h_joining').value;
+  if(!outlet||!position||!joining) { showToast('Outlet, Position and Joining Date are required'); return; }
+
+  const c = _candidates[_hiringCandId] || _currentCandidate || {};
+  const nextId = await getNextEmpId(outlet);
+  const empData = {
+    emp_id: nextId,
+    name: c.name||'',
+    phone: c.phone||'',
+    email: c.email||'',
+    address: c.address||'',
+    outlet,
+    position,
+    joining_date: joining,
+    last_working_day: '',
+    status: 'Active',
+    ctc: document.getElementById('h_ctc').value||'',
+    basic: document.getElementById('h_basic').value||'',
+    hra: document.getElementById('h_hra').value||'',
+    aadhaar: document.getElementById('h_aadhaar').value||'',
+    pan: document.getElementById('h_pan').value||'',
+    account_no: document.getElementById('h_account').value||'',
+    ifsc: document.getElementById('h_ifsc').value||'',
+    bank_name: document.getElementById('h_bank').value||'',
+    skills: c.skills||[],
+    experience_years: c.experience_years||'',
+    education: c.education||'',
+    past_employers: c.past_employers||[],
+    notes: [{ text: document.getElementById('h_notes').value||'Employee onboarded.', ts: new Date().toISOString() }],
+    remuneration_log: {},
+    created_at: new Date().toISOString()
+  };
+
+  const key = nextId.replace(/[^a-zA-Z0-9]/g,'_');
+  const ok = await window.dbSet('employees/'+key, empData);
+  if(ok) {
+    if(_hiringCandId) await window.dbUpdate('candidates/'+_hiringCandId, { status:'Hired' });
+    closeHireModal();
+    showToast(`${nextId} created — ${c.name} is now an employee`);
+    renderDirectory();
+    renderEmployeeList();
+    renderAllEmployees();
+  } else {
+    showToast('Firebase not connected — check Settings');
+  }
+}
+
+async function getNextEmpId(outlet) {
+  const conf = await window.dbGet('config') || {};
+  const key = 'last_id_'+outlet;
+  const last = conf[key] || 0;
+  const next = last + 1;
+  const padded = String(next).padStart(3,'0');
+  await window.dbSet('config/'+key, next);
+  return `HB-${outlet}-${padded}`;
+}
+
+// ─── EMPLOYEE DETAIL VIEW ────────────────────────────
+async function openEmpDetail(empKey, panel) {
+  _employees = await window.dbGet('employees') || {};
+  const e = _employees[empKey];
+  if(!e) return;
+  const initials = (e.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const remLog = e.remuneration_log || {};
+  const remRows = Object.entries(remLog).sort((a,b)=>b[0].localeCompare(a[0])).map(([month,d])=>`
+    <tr>
+      <td>${month}</td>
+      <td>₹${Number(d.net_pay||d.amount||0).toLocaleString('en-IN')}</td>
+      <td>${d.basic ? `₹${Number(d.basic).toLocaleString('en-IN')}` : '—'}</td>
+      <td>${d.hra ? `₹${Number(d.hra).toLocaleString('en-IN')}` : '—'}</td>
+      <td><button onclick="generateSlip('${empKey}','${month}')" style="background:none;border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-family:Space Mono,monospace;font-size:.42rem;letter-spacing:1px;color:var(--text3);cursor:pointer">PDF</button></td>
+    </tr>`).join('');
+
+  const html = `
+    <button class="profile-back" onclick="backToList('${panel}')">← Back</button>
+    <div class="profile-hero">
+      <div class="profile-avatar-lg">${initials}</div>
+      <div>
+        <div class="profile-id">${e.emp_id||'—'}</div>
+        <div class="profile-name-lg">${e.name||'—'}</div>
+        <div style="font-family:Space Mono,monospace;font-size:.5rem;letter-spacing:2px;color:var(--text3);margin-top:4px">${e.position||'—'} · ${e.outlet||'—'}</div>
+        <span class="status-pill status-${(e.status||'active').toLowerCase()}" style="margin-top:8px;display:inline-block">${e.status||'Active'}</span>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        ${e.phone ? `<a href="https://wa.me/91${e.phone.replace(/\D/g,'')}" target="_blank"><button class="btn-whatsapp" style="padding:8px 14px;font-size:.7rem">WhatsApp</button></a>` : ''}
+        <button class="btn-ghost" style="padding:8px 14px;font-size:.7rem" onclick="updateEmpStatus('${empKey}')">Update Status</button>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-bottom:14px">
+      <div class="section-title">Contact & Employment</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-val">${e.phone||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Email</div><div class="detail-val">${e.email||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Address</div><div class="detail-val">${e.address||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Joining Date</div><div class="detail-val">${e.joining_date||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Last Working Day</div><div class="detail-val">${e.last_working_day||'Active'}</div></div>
+        <div class="detail-item"><div class="detail-label">Experience</div><div class="detail-val">${e.experience_years||'—'} yrs</div></div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-bottom:14px">
+      <div class="section-title">Salary & KYC</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-label">CTC / Month</div><div class="detail-val">₹${Number(e.ctc||0).toLocaleString('en-IN')}</div></div>
+        <div class="detail-item"><div class="detail-label">Basic</div><div class="detail-val">₹${Number(e.basic||0).toLocaleString('en-IN')}</div></div>
+        <div class="detail-item"><div class="detail-label">HRA</div><div class="detail-val">₹${Number(e.hra||0).toLocaleString('en-IN')}</div></div>
+        <div class="detail-item"><div class="detail-label">Aadhaar</div><div class="detail-val">${e.aadhaar ? e.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3') : '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">PAN</div><div class="detail-val">${e.pan||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Bank</div><div class="detail-val">${e.bank_name||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Account No.</div><div class="detail-val">${e.account_no||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">IFSC</div><div class="detail-val">${e.ifsc||'—'}</div></div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-bottom:14px">
+      <div class="section-title">Remuneration History</div>
+      ${remRows ? `<div style="overflow-x:auto"><table class="remun-table"><thead><tr><th>Month</th><th>Net Pay</th><th>Basic</th><th>HRA</th><th>Slip</th></tr></thead><tbody>${remRows}</tbody></table></div>` : '<div style="font-size:.82rem;color:var(--text3);padding:8px 0">No salary records yet. Upload payroll sheets to populate.</div>'}
+    </div>
+
+    <div class="glass-card" style="margin-bottom:14px">
+      <div class="section-title">HR Notes</div>
+      ${(e.notes||[]).map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border2)"><div style="font-size:.78rem;color:var(--text2)">${n.text}</div><div style="font-family:Space Mono,monospace;font-size:.4rem;color:var(--text3);margin-top:4px">${new Date(n.ts).toLocaleDateString('en-IN')}</div></div>`).join('')}
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <textarea class="notes-area" id="newNote_${empKey}" placeholder="Add a note..." rows="2" style="flex:1"></textarea>
+        <button class="btn-primary" style="width:auto;padding:10px 16px;align-self:flex-end" onclick="addNote('${empKey}','${panel}')">Add</button>
+      </div>
+    </div>`;
+
+  if(panel==='onboarding') {
+    document.getElementById('empListView').style.display = 'none';
+    document.getElementById('empDetailView').style.display = 'block';
+    document.getElementById('empDetailView').innerHTML = html;
+  } else {
+    document.getElementById('allEmpView').style.display = 'none';
+    document.getElementById('allEmpDetail').style.display = 'block';
+    document.getElementById('allEmpDetail').innerHTML = html;
+  }
+}
+
+function backToList(panel) {
+  if(panel==='onboarding') {
+    document.getElementById('empDetailView').style.display = 'none';
+    document.getElementById('empListView').style.display = 'block';
+    renderEmployeeList();
+  } else {
+    document.getElementById('allEmpDetail').style.display = 'none';
+    document.getElementById('allEmpView').style.display = 'block';
+    renderAllEmployees();
+  }
+}
+
+async function addNote(empKey, panel) {
+  const ta = document.getElementById('newNote_'+empKey);
+  const text = ta.value.trim();
+  if(!text) return;
+  const e = _employees[empKey];
+  const notes = [...(e.notes||[]), { text, ts: new Date().toISOString() }];
+  await window.dbUpdate('employees/'+empKey, { notes });
+  showToast('Note added');
+  openEmpDetail(empKey, panel);
+}
+
+async function updateEmpStatus(empKey) {
+  const e = _employees[empKey];
+  const statuses = ['Active','Resigned','Terminated'];
+  const curr = e.status||'Active';
+  const next = statuses[(statuses.indexOf(curr)+1)%statuses.length];
+  await window.dbUpdate('employees/'+empKey, { status: next, last_working_day: next!=='Active' ? new Date().toISOString().slice(0,10) : '' });
+  showToast('Status updated to '+next);
+  renderAllEmployees();
+}
+
+// ─── PAYROLL UPLOADS ────────────────────────────────
+async function handleBankUpload(file) {
+  if(!file) return;
+  const report = document.getElementById('bankReport');
+  report.innerHTML = '<div style="padding:1

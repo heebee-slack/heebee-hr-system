@@ -2190,6 +2190,9 @@ function waitForFirebaseAndBoot(){
   }
 }
 (function(){
+// Ensure app layout is hidden on initial load
+document.getElementById('appLayout').style.display='none';
+document.getElementById('loginWrap').style.display='flex';
 const u=sessionStorage.getItem('hb_hr_user');
 if(u&&USERS[u]){
   document.getElementById('loginWrap').style.display='none';
