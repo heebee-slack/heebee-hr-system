@@ -768,49 +768,46 @@ if(optOut){
 
 Dear ${e.name},
 
-As per your request, you are choosing to *opt out of the Employees' Provident Fund (EPF) scheme* at the time of joining Heebee Coffee Pvt. Ltd.
+You are opting OUT of the Employees' Provident Fund (EPF) scheme at the time of joining.
 
-*What this means for you:*
+*Important — This is PERMANENT:*
+✓ No PF deductions from salary
+✓ No UAN (Universal Account Number)
+✓ No employer PF contribution
+✓ This decision CANNOT be reversed
 
-1. *No PF Deductions* — No amount will be deducted from your salary towards Provident Fund
-2. *No UAN* — No Universal Account Number will be generated for you
-3. *No Employer PF Contribution* — The company will not contribute to any PF account on your behalf
-4. *No Pension Scheme* — You will not be covered under the Employees' Pension Scheme (EPS), 1995
-5. *No EDLI* — You will not be covered under the Employees' Deposit Linked Insurance Scheme, 1976
-6. *PERMANENT Decision* — Once processed, this decision *cannot be reversed*. You cannot enroll in EPF later at this company.
+*You must be eligible:*
+- Fresh joinee (never in EPF before)
+- No previous UAN
+- Basic salary exceeds ₹15,000/month
+- Opt-out only at time of joining
 
-*Who is eligible to opt out:*
-◈ You must be a *fresh joinee* who has NEVER been a member of EPF at any previous employer
-◈ You must NOT have a previously generated UAN (Universal Account Number)
-◈ Your Basic salary must exceed ₹15,000 per month
-◈ This declaration must be made ONLY at the time of joining
+*⚠️ WARNING:*
+Making a false declaration is punishable under EPF Act, 1952.
 
-*⚠ WARNING:* If you have ever been enrolled in EPF at ANY previous employer, you are NOT eligible to opt out. Making a false declaration is a *punishable offence* under the EPF & Miscellaneous Provisions Act, 1952.
+*📋 REQUIRED: Download & Submit Both Forms*
 
-*Documents you MUST fill, sign and submit to HR:*
-
-📋 *Form 11 (Declaration Form)* — Download here:
+📄 FORM 11 (Declaration Form):
 ${FORM11_URL}
 
-📋 *Annexure C (Opt-Out Declaration)* — Download here:
+📄 ANNEXURE C (Opt-Out Declaration):
 ${ANNEXURE_C_URL}
 
-Also bring:
-📋 Copy of your Aadhaar Card
-📋 Copy of your PAN Card
+Also submit copies of:
+✓ Aadhaar Card
+✓ PAN Card
 
-Please print both forms, fill in all details, sign them, and submit to HR along with Aadhaar & PAN copies *before your joining date*.
+Print, sign, and submit *BEFORE joining date*.
 
-If you have any doubts or questions, please contact HR immediately before signing.
+Contact HR with any questions.
 
-— Heebee Coffee HR System
-Employee: ${e.name}
-Emp ID: ${e.emp_id}
-Date: ${new Date().toLocaleDateString('en-IN')}
-PF Code: LDLDH2320080000`);
+— Heebee Coffee HR
+Emp: ${e.name}
+ID: ${e.emp_id}
+Date: ${new Date().toLocaleDateString('en-IN')}`);
     const waUrl=`https://wa.me/${phone.startsWith('91')?'':'91'}${phone}?text=${msg}`;
     window.open(waUrl,'_blank');
-    showToast('WhatsApp sent with Form 11 + Annexure C links');
+    showToast('✓ WhatsApp sent with Form 11 + Annexure C download links');
   }else{showToast('No phone number — add phone to send WhatsApp');}
   const notes=[...(e.notes||[]),{text:`EPF permanently opted out. WhatsApp sent with Form 11 & Annexure C download links. Opted out on ${new Date().toLocaleDateString('en-IN')}.`,ts:new Date().toISOString()}];
   await window.dbUpdate('employees/'+empKey,{notes});
